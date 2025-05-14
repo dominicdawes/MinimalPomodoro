@@ -1,0 +1,37 @@
+:root {
+  --bg: #fff;
+  --fg: #333;
+  --accent: #e53935;
+  --shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+[data-theme="dark"] {
+  --bg: #1e1e1e;
+  --fg: #eee;
+  --accent: #ff7043;
+  --shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: sans-serif;
+  padding: 1rem;
+  width: 240px;
+  box-shadow: var(--shadow);
+  border-radius: 8px;
+}
+#clock {
+  font-size: 2rem;
+  text-align: center;
+  margin: 0.5rem 0;
+}
+button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+button:hover { opacity: 0.9; }
+.switch { /* custom toggle styling */ }

@@ -155,7 +155,10 @@ function bindUIActions() {
   });
 
   btnReset.addEventListener('click', () => {
-    chrome.runtime.sendMessage({ action: 'reset' }, refreshUI);
+    chrome.runtime.sendMessage({ action: 'reset' }, () => {
+      // This callback executes AFTER the background script has processed the 'reset' action
+      refreshUI();
+    });
   });
 
   // Navigation

@@ -212,12 +212,40 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 50%;
+  /* Conic gradient for scarlet to orange to bright/white orange progress */
   background: conic-gradient(
-    var(--accent) 0deg,
-    var(--accent) var(--deg, 0deg),
-    transparent var(--deg, 0deg) 360deg
+    #FF2D00 0deg,   /* Scarlet start */
+    #FF6F00 120deg, /* Transition to orange */
+    #FFA700 240deg, /* Towards brighter orange/white-orange */
+    transparent var(--deg, 0deg), /* Progress fill */
+    transparent 360deg
   );
-  transition: background 0.5s linear; /* Original */
+  transition: background 0.5s linear;
+}
+
+/* New CSS for the rounded leading edge */
+.progress::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%; /* Position at the top center of the circle */
+  transform-origin: 0 100%; /* Rotate around the center of the circle */
+  transform: translateX(-50%) rotate(var(--deg, 0deg)); /* Rotate based on progress */
+  
+  width: 12px; /* Adjust to match the thickness of your donut stroke */
+  height: 12px; /* Should be equal to width for a perfect circle */
+  border-radius: 50%; /* Makes it a perfect circle */
+  
+  /* Apply the color that should be at the leading edge.
+     This typically means the color from the end of your gradient for the filled part.
+     For your gradient, it's the bright/white orange or a similar shade. */
+  background-color: #FFA700; /* Example: Bright orange/white-orange */
+  
+  /* Ensure it's always visible when progress exists */
+  opacity: 1; 
+  /* Optionally, you can hide it when --deg is 0 if you don't want a dot at the start */
+  /* Or make it transition out if --deg is 0 */
+  /* transition: transform 0.5s linear, opacity 0.1s linear; */
 }
 
 /* Center “hole” & contents */

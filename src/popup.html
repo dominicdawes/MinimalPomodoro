@@ -9,18 +9,14 @@
 <body>
   <div id="app">
 
-    <!-- 1. Main Timer View -->
     <section id="view-timer" class="view active">
       <header class="top-bar">
-        <!-- No header needed -->
-      </header>
+        </header>
 
-      <!-- center wrapper for the donut -->
       <div class="timer-container">
         <div class="donut" id="donut">
           <div class="progress"></div>
           <div class="inner">
-            <!-- add this line -->
             <div class="icon-btn eye"></div>
 
             <div id="time-display">25:00</div>
@@ -38,11 +34,9 @@
 
     </section>
 
-    <!-- 2. Settings View -->
     <section id="view-settings" class="view">
       <header class="top-bar">
-        <div class="title">Settings</div>
-        <!-- Close button (you can map this to a CSS var called `close` if you add it) -->
+        <button id="btn-back-settings" class="icon-btn back"></button> <div class="title">Settings</div>
         <button id="btn-close-settings" class="icon-btn close"></button>
       </header>
       <div class="tabs">
@@ -53,42 +47,33 @@
         <div class="setting-item" data-key="focus">
           <span>Focus Session</span>
           <span id="label-focus">25 min</span>
-          <!-- Forward arrow via CSS var -->
-          <span class="icon-btn forward arrow"></span>
-        </div>
+          <span class="arrow"></span> </div>
         <div class="setting-item" data-key="shortBreak">
           <span>Short Break</span>
           <span id="label-shortBreak">5 min</span>
-          <span class="icon-btn forward arrow"></span>
+          <span class="arrow"></span>
         </div>
         <div class="setting-item" data-key="longBreak">
           <span>Long Break</span>
           <span id="label-longBreak">15 min</span>
-          <span class="icon-btn forward arrow"></span>
+          <span class="arrow"></span>
         </div>
         <div class="setting-item" data-key="sessionsBeforeLong">
           <span>Long break after</span>
           <span id="label-sessionsBeforeLong">4 Sess.</span>
-          <span class="icon-btn forward arrow"></span>
+          <span class="arrow"></span>
         </div>
       </div>
     </section>
 
-    <!-- 3. Adjustment View -->
     <section id="view-adjust" class="view">
       <header class="top-bar">
-        <!-- Back arrow via CSS var -->
         <button id="btn-back-adjust" class="icon-btn back"></button>
         <div class="title" id="adjust-title">Adjust</div>
-        <div class="spacer"></div>
-      </header>
+        <div class="spacer"></div> </header>
       <div class="adjust-body">
-        <!-- minus via CSS var -->
-        <button id="decrease" class="icon-btn minus icon-btn-large"></button>
-        <input type="number" id="adjust-input" min="1" class="number-input" />
-        <!-- plus via CSS var -->
-        <button id="increase" class="icon-btn plus icon-btn-large"></button>
-      </div>
+        <button id="decrease" class="icon-btn minus"></button> <input type="number" id="adjust-input" min="1" class="number-input" />
+        <button id="increase" class="icon-btn plus"></button> </div>
       <div class="adjust-unit" id="adjust-unit">min</div>
     </section>
 

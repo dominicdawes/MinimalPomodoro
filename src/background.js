@@ -1,5 +1,5 @@
 // background.js
-// this file is...?
+// Service worker: alarms, badge updates, notifications, sound
 
 const FOCUS = 'focus';
 const BREAK = 'break';

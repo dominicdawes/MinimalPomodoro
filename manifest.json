@@ -9,7 +9,12 @@
     "16": "icons/clock-16.png",
     "48": "icons/clock-48.png"
   },
-  "permissions": ["storage", "alarms", "notifications"],
+  "permissions": [
+    "storage",
+    "notifications",
+    "alarms",
+    "action"
+  ],
   "host_permissions": ["<all_urls>"],   // if you ever pull in remote resources
   "background": {
     "service_worker": "src/background.js"

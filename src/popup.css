@@ -1,37 +1,386 @@
 :root {
-  --bg: #fff;
-  --fg: #333;
-  --accent: #e53935;
-  --shadow: 0 4px 12px rgba(0,0,0,0.1);
+  /* …your color & font vars… */
+  --bg: #121212;
+  --fg: #ececec;
+  --accent: #ff5722;
+  --accent-light: rgba(255,87,34,0.3);
+  --shadow: 0 4px 12px rgba(0,0,0,0.5);
+  --font: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --break-color: #4caf50;
+
+  /* Icons as CSS vars */
+  --icon-clock16:   url('/icons/clock-16.png');      /* `/` denotes abs path to icons */
+  --icon-clock48:   url('/icons/clock-48.png');
+  --icon-eye:       url('/icons/fluent-eye-16-reg.svg');
+  --icon-reset:     url('/icons/fluent-arrow-counterclockwise-16-reg.svg');
+  --icon-back:      url('/icons/fluent-chevron-left-16-regular.svg');
+  --icon-forward:   url('/icons/fluent-chevron-right-16-regular.svg');
+  --icon-plus:      url('/icons/fluent-add-16-regular.svg');
+  --icon-minus:     url('/icons/fluent-subtract-16-regular.svg');
+  --icon-settings:  url('/icons/fluent-settings-20-regular.svg');
+  --icon-coffee:    url('/icons/fluent-drink-coffee-16-regular.svg');
 }
-[data-theme="dark"] {
+
+/* -- Theme override for light mode: set on <body data-theme="light"> -- */
+body[data-theme="light"] {
+  --bg: #ffffff;
+  --fg: #222222;
+  --accent: #ff5722;
+  --accent-light: rgba(255,87,34,0.1);
+}
+
+body[data-theme="dark"] {
   --bg: #1e1e1e;
   --fg: #eee;
   --accent: #ff7043;
   --shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
-body {
-  background: var(--bg);
-  color: var(--fg);
-  font-family: sans-serif;
-  padding: 1rem;
-  width: 240px;
-  box-shadow: var(--shadow);
-  border-radius: 8px;
-}
-#clock {
-  font-size: 2rem;
-  text-align: center;
-  margin: 0.5rem 0;
-}
-button {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  box-shadow: var(--shadow);
+
+/* ——— Icons config (merged) ——— */
+.icon-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;          /* 24px icon + 2*8px padding */
+  height: 40px;
+  padding: 8px;
+  border: 1px solid var(--fg);
+  border-radius: 50%;
+  background: none;
   cursor: pointer;
 }
-button:hover { opacity: 0.9; }
-.switch { /* custom toggle styling */ }
+
+.icon-btn::before {
+  content: '';
+  position: absolute;
+  inset: 8px;           /* match the padding */
+  background-color: var(--fg);
+  -webkit-mask: var(--icon-settings) no-repeat center / contain;
+          mask: var(--icon-settings) no-repeat center / contain;
+}
+
+/* Override for each semantic icon */
+.icon-btn.reset::before    { -webkit-mask: var(--icon-reset);    mask: var(--icon-reset); }
+.icon-btn.back::before     { -webkit-mask: var(--icon-back);     mask: var(--icon-back); }
+.icon-btn.forward::before  { -webkit-mask: var(--icon-forward);  mask: var(--icon-forward); }
+.icon-btn.eye::before      { -webkit-mask: var(--icon-eye);      mask: var(--icon-eye); }
+.icon-btn.plus::before     { -webkit-mask: var(--icon-plus);     mask: var(--icon-plus); }
+.icon-btn.minus::before    { -webkit-mask: var(--icon-minus);    mask: var(--icon-minus); }
+.icon-btn.coffee::before   { -webkit-mask: var(--icon-coffee);   mask: var(--icon-coffee); }
+.icon-btn.settings::before { -webkit-mask: var(--icon-settings); mask: var(--icon-settings); }
+
+/* map semantic classes → CSS masks with currentColor painting */
+.icon-btn.clock16 {
+  background-image: none;
+  -webkit-mask: var(--icon-clock16) no-repeat center / contain;
+  mask: var(--icon-clock16) no-repeat center / contain;
+  background-color: var(--fg);
+}
+.icon-btn.clock48 {
+  background-image: none;
+  -webkit-mask: var(--icon-clock48) no-repeat center / contain;
+  mask: var(--icon-clock48) no-repeat center / contain;
+  background-color: var(--fg);
+}
+.icon-btn.eye {
+  background-image: none;
+  -webkit-mask: var(--icon-eye) no-repeat center / contain;
+  mask: var(--icon-eye) no-repeat center / contain;
+  background-color: var(--fg);
+}
+.icon-btn.reset {
+  background-image: none;
+  -webkit-mask: var(--icon-reset) no-repeat center / contain;
+  mask: var(--icon-reset) no-repeat center / contain;
+  background-color: var(--fg);
+}
+.icon-btn.back {
+  background-image: none;
+  -webkit-mask: var(--icon-back) no-repeat center / contain;
+  mask: var(--icon-back) no-repeat center / contain;
+  background-color: var(--fg);
+}
+.icon-btn.forward {
+  background-image: none;
+  -webkit-mask: var(--icon-forward) no-repeat center / contain;
+  mask: var(--icon-forward) no-repeat center / contain;
+  background-color: var(--fg);
+}
+.icon-btn.plus {
+  background-image: none;
+  -webkit-mask: var(--icon-plus) no-repeat center / contain;
+  mask: var(--icon-plus) no-repeat center / contain;
+  background-color: var(--fg);
+}
+.icon-btn.minus {
+  background-image: none;
+  -webkit-mask: var(--icon-minus) no-repeat center / contain;
+  mask: var(--icon-minus) no-repeat center / contain;
+  background-color: var(--fg);
+}
+.icon-btn.settings {
+  background-image: none;
+  -webkit-mask: var(--icon-settings) no-repeat center / contain;
+  mask: var(--icon-settings) no-repeat center / contain;
+  background-color: var(--fg);
+}
+.icon-btn.coffee {
+  background-image: none;
+  -webkit-mask: var(--icon-coffee) no-repeat center / contain;
+  mask: var(--icon-coffee) no-repeat center / contain;
+  background-color: var(--fg);
+}
+
+/* -- Box Layout -- */
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  padding: 0;
+  width: 340px;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  user-select: none;
+}
+
+/* -- Common Layout -- */
+.view {
+  display: none;
+  flex-direction: column;
+  height: 100%;
+}
+.view.active {
+  display: flex;
+}
+
+/* .top-bar,
+.bottom-bar {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+} */
+
+/* bottom‐row layout */
+.bottom-bar {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+/* all three buttons get a 1px border */
+.bottom-bar > button {
+  border: 1px solid var(--fg);
+  border-radius: 4px; /* or use 50% on icon-btn for perfect circle */
+}
+
+/* 1px light border + 8px padding + circular shape for icon buttons */
+.bottom-bar .icon-btn {
+  padding: 8px;
+  border: 1px solid var(--fg);
+  border-radius: 50%;
+}
+
+/* START button: tighter, fixed padding, pill shape */
+.bottom-bar .primary-btn {
+  border: 1px solid var(--fg);
+  padding: 0.75rem 30px;
+  border-radius: 24px;
+  flex: 0 0 auto;      /* don’t stretch to fill */
+  margin: 0;           /* remove any extra margins */
+}
+
+/* ensure primary-btn keeps its pill shape */
+.bottom-bar .primary-btn {
+  border-radius: 24px;
+  background-clip: padding-box; /* so the accent bg sits under the border */
+}
+
+.top-bar .spacer {
+  flex: 1;
+}
+.title {
+  flex: 1; text-align: center; font-weight: 500;
+}
+
+/* -- Timer View -- */
+#view-timer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.timer-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Base ring behind everything */
+.donut {
+  position: relative;
+  width: 200px;
+  height: 200px;
+}
+.donut::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: #333;  /* dark‐gray ring before you start */
+}
+
+/* Active slice on top */
+.progress {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--accent) 0deg,
+    var(--accent) var(--deg, 0deg),
+    transparent var(--deg, 0deg) 360deg
+  );
+  transition: background 0.5s linear;
+}
+
+/* Center “hole” & contents */
+.inner {
+  position: absolute;
+  inset: 12px;
+  border-radius: 50%;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Tweak the eye icon size & spacing */
+.inner .icon-btn.eye {
+  width: 20px;
+  height: 20px;
+  margin-bottom: 0.5rem;
+}
+
+#time-display {
+  font-size: 2.5rem;
+  font-weight: 300;
+}
+
+#session-label {
+  margin-top: 0.25rem;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+}
+.status {
+  display: flex;
+  gap: 4px;
+  margin-top: 0.5rem;
+}
+.status .dot {
+  width: 8px; height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  opacity: 0.4;
+}
+.status .dot.completed {
+  opacity: 1;
+}
+.primary-btn {
+  flex: 1;
+  margin: 0 1rem;
+  padding: 0.75rem;
+  background: var(--accent);
+  border: none;
+  border-radius: 24px;
+  font-size: 1rem;
+  font-weight: 500;
+  box-shadow: var(--shadow);
+  color: #fff;
+  cursor: pointer;
+}
+
+/* -- Settings View -- */
+.tabs {
+  display: flex;
+  margin: 0.5rem;
+}
+.tab {
+  flex: 1;
+  padding: 0.5rem 0;
+  background: none;
+  border: none;
+  color: var(--fg);
+  font-weight: 500;
+  cursor: pointer;
+  opacity: 0.6;
+}
+.tab.active {
+  opacity: 1;
+  border-bottom: 2px solid var(--accent);
+}
+.settings-list {
+  flex: 1;
+  overflow-y: auto;
+}
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.setting-item:hover {
+  background: rgba(255,255,255,0.05);
+}
+.setting-item span:first-child {
+  font-size: 0.95rem;
+}
+.setting-item .arrow {
+  width: 16px; height: 16px;
+  opacity: 0.6;
+}
+
+/* -- Adjustment View -- */
+.adjust-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+.icon-btn-large {
+  background: var(--accent);
+  border: none;
+  border-radius: 50%;
+  width: 48px; height: 48px;
+  font-size: 1.5rem;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+.number-input {
+  width: 60px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--fg);
+  color: var(--fg);
+  font-size: 2rem;
+  text-align: center;
+}
+.adjust-unit {
+  text-align: center;
+  padding-bottom: 1rem;
+  font-size: 0.9rem;
+  color: var(--accent);
+}
+
+/* -- Transitions -- */
+.view {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}

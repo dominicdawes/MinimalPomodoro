@@ -27,7 +27,7 @@ Chrome (or Edge) installed for local testing
 
 ## 🚀 Local Testing in Chrome
 
-Open Chrome and navigate to chrome://extensions.
+Open Chrome and navigate to chrome://extensions.  (in Edge -> edge://extensions)
 
 Enable Developer mode (toggle in top-right).
 

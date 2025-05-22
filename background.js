@@ -1,4 +1,6 @@
 // background.js
+// this file is...?
+
 const FOCUS = 'focus';
 const BREAK = 'break';
 let remaining = 0;

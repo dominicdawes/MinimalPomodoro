@@ -1,4 +1,5 @@
 // manifest.json
+// this file serves the purpose of....
 {
   "manifest_version": 3,
   "name": "Modern Pomodoro",
@@ -10,7 +11,7 @@
     "128": "icons/clock-128.png"
   },
   "permissions": ["storage", "alarms", "notifications"],
-  "host_permissions": ["<all_urls>"], // if you ever pull in remote resources
+  "host_permissions": ["<all_urls>"],   // if you ever pull in remote resources
   "background": {
     "service_worker": "src/background.js"
   },

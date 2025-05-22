@@ -1,4 +1,5 @@
 // popup.js
+// this file does...
 document.addEventListener('DOMContentLoaded', async () => {
   const { focusDuration, breakDuration, theme } = await chrome.storage.local.get(['focusDuration','breakDuration','theme']);
   focusRange.value = focusDuration/60;

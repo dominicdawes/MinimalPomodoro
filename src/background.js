@@ -129,18 +129,21 @@ function pauseTimer() {
 }
 
 function resetTimer() {
-  chrome.storage.local.get(['currentSession'], prefs => {
+  // Always reset to the default focus session values
+  chrome.storage.local.get(['focus'], prefs => { // Only need to get 'focus' here
     chrome.storage.local.set({
       timerRunning: false,
-      sessionCount: 0
+      sessionCount: 0,
+      currentSession: 'focus', // Explicitly set to focus
+      remainingSec: prefs.focus * 60 // Reset to focus duration in seconds
+    }, () => { // Callback after storage is set
+      clearAlarm();
+      // Clear the badge text directly
+      chrome.action.setBadgeText({ text: '' });
+      // Set badge background color to focus color
+      chrome.action.setBadgeBackgroundColor({ color: '#ff5722' });
+      // No need to call updateBadge here, as we explicitly clear it and set color.
     });
-    // reset remaining to full duration
-    chrome.storage.local.get(prefs.currentSession, d => {
-      const sec = d[prefs.currentSession] * 60;
-      chrome.storage.local.set({ remainingSec: sec });
-      updateBadge(sec, prefs.currentSession);
-    });
-    clearAlarm();
   });
 }
 

@@ -25,8 +25,7 @@
   --icon-minus:     url('/icons/fluent-subtract-16-regular.svg');
   --icon-settings:  url('/icons/fluent-settings-20-regular.svg');
   --icon-coffee:    url('/icons/fluent-drink-coffee-16-regular.svg');
-  /* Add --icon-close if you have a close icon for settings page, e.g.: */
-  /* --icon-close: url('/icons/fluent-dismiss-16-regular.svg'); */
+  --icon-close:     url('/icons/fluent-dismiss-16-regular.svg');
 }
 
 /* -- Theme override for light mode: set on <body data-theme="light"> -- */
@@ -101,8 +100,7 @@ body[data-theme="light"] {
 .icon-btn.minus     { -webkit-mask-image: var(--icon-minus);     mask-image: var(--icon-minus); }
 .icon-btn.settings  { -webkit-mask-image: var(--icon-settings);  mask-image: var(--icon-settings); }
 .icon-btn.coffee    { -webkit-mask-image: var(--icon-coffee);    mask-image: var(--icon-coffee); }
-/* Example for a close button, ensure --icon-close is defined in :root */
-/* .icon-btn.close  { -webkit-mask-image: var(--icon-close); mask-image: var(--icon-close); } */
+.icon-btn.close     { -webkit-mask-image: var(--icon-close); mask-image: var(--icon-close); }
 
 
 /* -- Box Layout -- */
@@ -207,46 +205,57 @@ body {
   background: #333;  /* Dark‐gray ring, contrasts with new darker --bg */
 }
 
+
+
+/* Rounded front edge - positioned at the progress end */
+.progress::before {
+  content: '';
+  position: absolute;
+  /* match your ring thickness (e.g. 12px) or bump by +2px if you see any edges */
+  width: 12px;
+  height: 12px;
+  background: #FF5722;      /* same as your arc color */
+  border-radius: 50%;       /* makes it a perfect circle */
+  top: 50%;
+  left: 50%;
+  transform:
+    translate(-50%, -50%)                    /* move the dot into the center */
+    rotate(calc(var(--deg) - 90deg))         /* spin the dot so 0deg is at 12 o’clock */
+    translateX(94px);                        /* push it out to the edge */
+  transition: transform 0.2s ease-in;
+}
+
 /* Active slice on top */
 .progress {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  /* Conic gradient for scarlet to orange to bright/white orange progress */
+  /* Enhanced conic gradient with fade effect at the end */
   background: conic-gradient(
-    #FF2D00 0deg,   /* Scarlet start */
-    #FF6F00 120deg, /* Transition to orange */
-    #FFA700 240deg, /* Towards brighter orange/white-orange */
-    transparent var(--deg, 0deg), /* Progress fill */
-    transparent 360deg
+    from 0deg,
+    transparent  0deg,
+    #FF5722 var(--deg),                         /* solid up to your angle */
+    rgba(255,87,34,0.3) calc(var(--deg)),       /* gentle fade next 10° */
+    transparent    calc(var(--deg))               /* snap to fully clear at the head */
   );
-  transition: background 0.5s linear;
+  transition: all 0.45s ease-in;
+  transform: none;
 }
 
-/* New CSS for the rounded leading edge */
+/* Alternative debug version - keep this for now */
 .progress::after {
-  content: '';
+  /* content: attr(data-deg); */
   position: absolute;
-  top: 0;
-  left: 50%; /* Position at the top center of the circle */
-  transform-origin: 0 100%; /* Rotate around the center of the circle */
-  transform: translateX(-50%) rotate(var(--deg, 0deg)); /* Rotate based on progress */
-  
-  width: 12px; /* Adjust to match the thickness of your donut stroke */
-  height: 12px; /* Should be equal to width for a perfect circle */
-  border-radius: 50%; /* Makes it a perfect circle */
-  
-  /* Apply the color that should be at the leading edge.
-     This typically means the color from the end of your gradient for the filled part.
-     For your gradient, it's the bright/white orange or a similar shade. */
-  background-color: #FFA700; /* Example: Bright orange/white-orange */
-  
-  /* Ensure it's always visible when progress exists */
-  opacity: 1; 
-  /* Optionally, you can hide it when --deg is 0 if you don't want a dot at the start */
-  /* Or make it transition out if --deg is 0 */
-  /* transition: transform 0.5s linear, opacity 0.1s linear; */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(90deg);
+  color: white;
+  font-size: 12px;
+  pointer-events: none;
+  z-index: 10; /* Above other pseudo-elements */
 }
+
+
 
 /* Center “hole” & contents */
 .inner {

@@ -1,5 +1,5 @@
 // popup.js
-// this file does popup logic: controls, storage, messaging, 
+// this file does popup logic: controls, storage, messaging,
 // reads stored states, and updates the timer donut clock
 
 // ────────────────────────────────────────────────────────────
@@ -20,6 +20,7 @@ const viewAdjust      = document.getElementById('view-adjust');
 // Buttons for navigation and settings
 const btnSettings       = document.getElementById('btn-settings'); // In Timer view footer
 const btnCloseSettings  = document.getElementById('btn-close-settings'); // In Settings view header
+const btnBackSettings     = document.getElementById('btn-back-settings');   // In Settings view header (typo? btnBackAdjust is also used)
 const btnBackAdjust     = document.getElementById('btn-back-adjust');   // In Adjust view header
 const settingItems    = document.querySelectorAll('.setting-item');
 
@@ -40,7 +41,7 @@ const increaseBtn     = document.getElementById('increase');
 
 // Tabs in Settings view
 const tabDuration     = document.getElementById('tab-duration');
-const tabNotifications = document.getElementById('tab-preferences');
+const tabNotifications = document.getElementById('tab-preferences'); // Corrected from original typo `tabPreferences`
 
 let currentAdjustKey = null; // To store which setting is being adjusted
 
@@ -71,7 +72,7 @@ function openAdjustView(key) {
   currentAdjustKey = key;
   chrome.storage.local.get(key, prefs => {
     adjustInput.value = prefs[key] || (key === 'sessionsBeforeLong' ? 4 : 25); // Default if not set
-    
+
     let unitText = 'min';
     let titleText = 'Setting';
 
@@ -79,7 +80,7 @@ function openAdjustView(key) {
       case 'focus': titleText = 'Focus Session'; break;
       case 'shortBreak': titleText = 'Short Break'; break;
       case 'longBreak': titleText = 'Long Break'; break;
-      case 'sessionsBeforeLong': 
+      case 'sessionsBeforeLong':
         titleText = 'Sessions Before Long Break';
         unitText = 'Sess.';
         break;
@@ -115,10 +116,50 @@ function refreshUI() {
     timeDisplay.textContent = formatTime(remainingSec);
     sessionLabel.textContent = labelCase(currentSession);
 
-    // donut
+    // Donut progress calculation (ENHANCED WITH ROUNDED EDGE)
     const totalDurationForCurrentSession = currentPrefs[currentSession] * 60;
-    const deg = totalDurationForCurrentSession > 0 ? (360 - (remainingSec / totalDurationForCurrentSession) * 360) : 0;
+    let deg;
+    let percent_of_donut;
+
+    if (totalDurationForCurrentSession > 0) {
+        const elapsedSec = totalDurationForCurrentSession - remainingSec;
+        percent_of_donut = (elapsedSec / totalDurationForCurrentSession) * 100;
+        deg = (elapsedSec / totalDurationForCurrentSession) * 360;
+        
+        console.log('=== DONUT DEBUG ===');
+        console.log('Percent of Donut:', percent_of_donut.toFixed(2) + '%');
+        console.log('Degrees:', deg.toFixed(2));
+        console.log('==================');
+    } else {
+        percent_of_donut = 0;
+        deg = 0;
+    }
+
+    deg = Math.max(0, Math.min(360, deg));
+
+    // Set the CSS variables
     donutProgress.style.setProperty('--deg', `${deg}deg`);
+    donutProgress.setAttribute('data-deg', `${deg.toFixed(1)}°`);
+
+    // Control rounded edge visibility - hide when progress is very small
+    const showRoundedEdge = deg > 5; // Only show after 5 degrees of progress
+    donutProgress.style.setProperty('--progress-opacity', showRoundedEdge ? '1' : '0');
+
+    // Enhanced debug info
+    window.donut_debug = {
+        currentSession: currentSession,
+        totalDuration: totalDurationForCurrentSession,
+        remainingSec: remainingSec,
+        elapsedSec: totalDurationForCurrentSession - remainingSec,
+        percent_of_donut: percent_of_donut,
+        degrees: deg,
+        showRoundedEdge: showRoundedEdge,
+        cssVarSet: donutProgress.style.getPropertyValue('--deg')
+    };
+
+    // console.log('CSS Variable --deg set to:', donutProgress.style.getPropertyValue('--deg'));
+    // console.log('Rounded edge visible:', showRoundedEdge);
+
 
 
     // status dots
@@ -168,6 +209,11 @@ function bindUIActions() {
   if (btnCloseSettings) {
     btnCloseSettings.addEventListener('click', () => switchToView('view-timer'));
   }
+  // Check for btnBackSettings vs btnBackAdjust: btnBackAdjust is used in the Adjust view header.
+  // btnBackSettings seems to be for the Settings view header, going back to timer.
+  if (btnBackSettings) { // Make sure this element exists in HTML
+    btnBackSettings.addEventListener('click', () => switchToView('view-timer'));
+  }
   if (btnBackAdjust) {
     btnBackAdjust.addEventListener('click', () => switchToView('view-settings'));
   }
@@ -183,7 +229,7 @@ function bindUIActions() {
   // Adjustment view controls (+ / - / input change)
   decreaseBtn.addEventListener('click', () => updateAdjustInput(-1));
   increaseBtn.addEventListener('click', () => updateAdjustInput(1));
-  
+
   adjustInput.addEventListener('change', () => {
     let value = parseInt(adjustInput.value, 10);
     const min = parseInt(adjustInput.min, 10) || 1;
@@ -206,20 +252,21 @@ function bindUIActions() {
   });
 
   // Tab button logic (visual switching)
-  if (tabDuration && tabPreferences) {
+  // Ensure 'tabNotifications' is indeed the ID for the "tab-preferences" element
+  if (tabDuration && tabNotifications) { // Use tabNotifications here
     tabDuration.addEventListener('click', () => {
       tabDuration.classList.add('active');
-      tabPreferences.classList.remove('active'); // Updated to tabPreferences
+      tabNotifications.classList.remove('active');
       // Show relevant settings for DURATION
       document.querySelector('.settings-list').style.display = ''; // Show duration settings
       // Potentially hide PREFERENCES specific settings if they exist in a different list
     });
-    tabPreferences.addEventListener('click', () => {
-      tabPreferences.classList.add('active');
+    tabNotifications.addEventListener('click', () => { // Use tabNotifications here
+      tabNotifications.classList.add('active');
       tabDuration.classList.remove('active');
       // Show relevant settings for PREFERENCES
       // Example: For now, we can just log or hide the current list if it's only for durations.
-      // document.querySelector('.settings-list').style.display = 'none'; 
+      // document.querySelector('.settings-list').style.display = 'none';
       // alert("PREFERENCES settings would be shown here.");
     });
   }

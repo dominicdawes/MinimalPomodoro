@@ -12,8 +12,7 @@ MinimalPomodoro/
 ├── popup.js              # Popup logic: controls, storage, messaging
 ├── icons/                # Toolbar and notification icons
 │   ├── clock-16.png
-│   ├── clock-48.png
-│   └── clock-128.png
+│   └── clock-48.png
 └── sounds/               # Notification bell sound
     └── bell.mp3
 ```

@@ -1,7 +1,11 @@
 :root {
+    /* change this once to resize your whole popup */
+  --popup-size: 340px;
+  
   /* Color Scheme - Adjusted for the desired darker UI */
   --bg: #0F0F0F; /* Darker background */
   --fg: #E0E0E0; /* Slightly softer foreground white */
+  --borders: #aaaaaa; /* DEBUG for border color */
   --accent: #ff5722; /* Reddish-orange for active elements like dots/progress */
   --accent-light: rgba(255,87,34,0.3);
   --shadow: 0 2px 8px rgba(0,0,0,0.3); /* Subtler shadow */
@@ -13,19 +17,32 @@
   --start-btn-fg: #1E1E1E;  /* Dark text for START button */
   --start-btn-border: #4A4A4A; /* Border for START button, matching background */
 
+  /* New variables for icon border and spacing */
+  --icon-glyph-size: 24px;
+  --icon-border-thickness-new: 1px;  /* Thickness of the new border */
+  --icon-breathing-room: 3px;        /* 3px space between icon glyph and its border */
 
   /* Icons as CSS vars */
-  --icon-clock16:   url('/icons/clock-16.png');
-  --icon-clock48:   url('/icons/clock-48.png');
-  --icon-eye:       url('/icons/fluent-eye-16-reg.svg');
-  --icon-reset:     url('/icons/fluent-arrow-counterclockwise-16-reg.svg');
-  --icon-back:      url('/icons/fluent-chevron-left-16-regular.svg');
-  --icon-forward:   url('/icons/fluent-chevron-right-16-regular.svg');
-  --icon-plus:      url('/icons/fluent-add-16-regular.svg');
-  --icon-minus:     url('/icons/fluent-subtract-16-regular.svg');
-  --icon-settings:  url('/icons/fluent-settings-20-regular.svg');
-  --icon-coffee:    url('/icons/fluent-drink-coffee-16-regular.svg');
-  --icon-close:     url('/icons/fluent-dismiss-16-regular.svg');
+  --icon-clock16:    url('/icons/clock-16.png');
+  --icon-clock48:    url('/icons/clock-48.png');
+  --icon-eye:        url('/icons/fluent-eye-16-reg.svg');
+  --icon-reset:      url('/icons/fluent-arrow-counterclockwise-16-reg.svg');
+  --icon-back:       url('/icons/fluent-chevron-left-16-regular.svg');
+  --icon-forward:    url('/icons/fluent-chevron-right-16-regular.svg');
+  --icon-plus:       url('/icons/fluent-add-16-regular.svg');
+  --icon-minus:      url('/icons/fluent-subtract-16-regular.svg');
+  --icon-settings:   url('/icons/fluent-settings-20-regular.svg');
+  --icon-coffee:     url('/icons/fluent-drink-coffee-16-regular.svg');
+  --icon-close:      url('/icons/fluent-dismiss-16-regular.svg');
+}
+
+/* ───── After your :root block ───── */
+html, body {
+  width:  var(--popup-size) !important;  /* new */
+  height: var(--popup-size) !important;  /* new */
+  margin: 0;
+  padding: 0;
+  overflow: hidden;                      /* new */
 }
 
 /* -- Theme override for light mode: set on <body data-theme="light"> -- */
@@ -41,29 +58,29 @@ body[data-theme="light"] {
 }
 
 /* The body[data-theme="dark"] rule is removed as the :root now defaults
-  to the desired dark theme. If you implement a theme switcher, 
-  you might re-introduce it or adjust :root and light theme accordingly.
+   to the desired dark theme. If you implement a theme switcher,
+   you might re-introduce it or adjust :root and light theme accordingly.
 */
 
 /* ——— Icons config (Simplified and Corrected) ——— */
 .icon-btn {
-  position: relative;
+  position: relative; /* Keep this for pseudo-element positioning */
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 40px;          /* Icon glyph will be smaller, within this tap target */
   height: 40px;
   padding: 8px;         /* Padding around the icon mask area */
-  border: 1px solid var(--fg); /* Default border for icon buttons */
-  border-radius: 50%;
+  /* border: 1px solid var(--fg); Default border for icon buttons */
+  /* border-radius: 50%; */
   background-color: transparent; /* Ensure button bg is transparent */
   cursor: pointer;
   /* The mask will be applied directly to this element using specific classes below */
 }
 
 /* The generic .icon-btn::before and specific .icon-btn.semantic::before rules
-  have been removed. Icons are now applied directly via mask on the .icon-btn element itself.
-  This gives better control over icon size and placement.
+   have been removed. Icons are now applied directly via mask on the .icon-btn element itself.
+   This gives better control over icon size and placement.
 */
 
 /* Map semantic classes → CSS masks with var(--fg) painting the icon */
@@ -87,21 +104,64 @@ body[data-theme="light"] {
   mask-position: center;
   -webkit-mask-size: contain; /* Or set to fixed size like 16px 16px if needed */
   mask-size: contain;
+  /* Use the new variable for icon size */
+  -webkit-mask-size: var(--icon-glyph-size) var(--icon-glyph-size); /* Controlled by new variable */
+  mask-size: var(--icon-glyph-size) var(--icon-glyph-size); 
 }
 
 /* Assign the correct mask image to each semantic class */
-.icon-btn.clock16   { -webkit-mask-image: var(--icon-clock16);   mask-image: var(--icon-clock16); }
-.icon-btn.clock48   { -webkit-mask-image: var(--icon-clock48);   mask-image: var(--icon-clock48); }
-.icon-btn.eye       { -webkit-mask-image: var(--icon-eye);       mask-image: var(--icon-eye); }
-.icon-btn.reset     { -webkit-mask-image: var(--icon-reset);     mask-image: var(--icon-reset); }
-.icon-btn.back      { -webkit-mask-image: var(--icon-back);      mask-image: var(--icon-back); }
-.icon-btn.forward   { -webkit-mask-image: var(--icon-forward);   mask-image: var(--icon-forward); }
-.icon-btn.plus      { -webkit-mask-image: var(--icon-plus);      mask-image: var(--icon-plus); }
-.icon-btn.minus     { -webkit-mask-image: var(--icon-minus);     mask-image: var(--icon-minus); }
-.icon-btn.settings  { -webkit-mask-image: var(--icon-settings);  mask-image: var(--icon-settings); }
-.icon-btn.coffee    { -webkit-mask-image: var(--icon-coffee);    mask-image: var(--icon-coffee); }
-.icon-btn.close     { -webkit-mask-image: var(--icon-close); mask-image: var(--icon-close); }
+.icon-btn.clock16    { -webkit-mask-image: var(--icon-clock16);    mask-image: var(--icon-clock16); }
+.icon-btn.clock48    { -webkit-mask-image: var(--icon-clock48);    mask-image: var(--icon-clock48); }
+.icon-btn.eye        { -webkit-mask-image: var(--icon-eye);        mask-image: var(--icon-eye); }
+.icon-btn.reset      { -webkit-mask-image: var(--icon-reset);    mask-image: var(--icon-reset); }
+.icon-btn.back       { -webkit-mask-image: var(--icon-back);       mask-image: var(--icon-back); }
+.icon-btn.forward    { -webkit-mask-image: var(--icon-forward);    mask-image: var(--icon-forward); }
+.icon-btn.plus       { -webkit-mask-image: var(--icon-plus);       mask-image: var(--icon-plus); }
+.icon-btn.minus      { -webkit-mask-image: var(--icon-minus);      mask-image: var(--icon-minus); }
+.icon-btn.settings   { -webkit-mask-image: var(--icon-settings);   mask-image: var(--icon-settings); }
+.icon-btn.coffee     { -webkit-mask-image: var(--icon-coffee);     mask-image: var(--icon-coffee); }
+.icon-btn.close      { -webkit-mask-image: var(--icon-close); mask-image: var(--icon-close); }
 
+
+/* New wrapper for icon buttons that need a circular border */
+.icon-border-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* Calculate wrapper size: icon-btn (40px) + 2*breathing-room (2*3px) + 2*border-thickness (2*1px) = 48px */
+  /* This calculation remains the same for the overall touch target size */
+  width: calc(40px + 2 * var(--icon-breathing-room) + 2 * var(--icon-border-thickness-new));
+  height: calc(40px + 2 * var(--icon-breathing-room) + 2 * var(--icon-border-thickness-new));
+  border: var(--icon-border-thickness-new) solid var(--borders);
+  border-radius: 50%;
+  box-sizing: border-box;
+  /* Add padding to the wrapper to create space around the icon and its border */
+  padding: var(--icon-breathing-room); /* Added 6px padding all around */
+  transition: border-color 0.2s, background-color 0.2s; /* Add transition for smooth hover */
+}
+
+/* Span container for rounded white square border around "plus" and "minus" */
+.icon-square-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px; /* Fixed width for the square */
+  height: 36px; /* Fixed height for the square */
+  border: var(--icon-border-thickness-new) solid var(--borders);
+  border-radius: 8px; /* Rounded corners */
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+  transition: border-color 0.2s, background-color 0.2s; /* Add transition for smooth hover */
+}
+
+.icon-border-wrapper:hover {
+  border-color: #888888; /* A darker grey for the border on hover */
+  background-color: rgba(255, 255, 255, 0.05); /* Similar to setting-item hover background */
+}
+
+.icon-square-wrapper:hover {
+  border-color: #888888; /* A darker grey for the border on hover */
+  background-color: rgba(255, 255, 255, 0.05); /* Similar to setting-item hover background */
+}
 
 /* -- Box Layout -- */
 * {
@@ -116,8 +176,8 @@ body {
   font-family: var(--font);
   user-select: none;
   /* To match the rounded corners of the popup window in the desired screenshot (OS dependent) */
-  /* border-radius: 8px; /* This might be needed if window isn't naturally rounded */
-  /* overflow: hidden;  /* To clip children to the body's border-radius */
+  border-radius: 8px; /* This might be needed if window isn't naturally rounded */
+  /* overflow: hidden;    /* To clip children to the body's border-radius */
 }
 
 /* -- Common Layout -- */
@@ -139,18 +199,6 @@ body {
   padding: 0.75rem 0.5rem; /* Increased vertical padding, added some horizontal */
 }
 
-/* All buttons in bottom-bar get base styling, but specific buttons override */
-.bottom-bar > button {
-  border-radius: 50%; /* Default to circular for icon buttons */
-}
-
-/* Icon buttons in bottom-bar: circular border and specific icon color */
-.bottom-bar .icon-btn {
-  padding: 8px; /* Retains from .icon-btn */
-  border: 1px solid var(--fg); /* White border */
-  /* Icon color is var(--fg) via the mask background rule */
-}
-
 /* START button: pill shape, specific colors, flat look */
 .bottom-bar .primary-btn {
   background: var(--start-btn-bg);
@@ -158,7 +206,7 @@ body {
   border: 1px solid var(--start-btn-border); /* Subtle border matching background or slightly different */
   padding: 0.75rem 30px;
   border-radius: 24px; /* Pill shape */
-  flex: 0 0 auto;      /* Don’t stretch to fill */
+  flex: 0 0 auto;       /* Don’t stretch to fill */
   margin: 0;           /* Remove any extra margins from generic button */
   font-size: 1rem;     /* Copied from .primary-btn */
   font-weight: 500;    /* Copied from .primary-btn */
@@ -174,6 +222,8 @@ body {
 .top-bar .spacer {
   flex: 1;
 }
+
+
 .title {
   flex: 1; text-align: center; font-weight: 500;
 }
@@ -204,8 +254,6 @@ body {
   border-radius: 50%;
   background: #333;  /* Dark‐gray ring, contrasts with new darker --bg */
 }
-
-
 
 /* Rounded front edge - positioned at the progress end */
 .progress::before {
@@ -255,8 +303,6 @@ body {
   z-index: 10; /* Above other pseudo-elements */
 }
 
-
-
 /* Center “hole” & contents */
 .inner {
   position: absolute;
@@ -290,17 +336,37 @@ body {
   font-size: 0.9rem;   /* Original */
   letter-spacing: 1px; /* Original */
 }
+
+/* Status Indicators (dots) */
+#status-indicators {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .status {
   display: flex;
-  gap: 4px;
-  margin-top: 0.5rem; /* Original */
+  gap: 2px;
+  margin-top: 0.5rem;
 }
+
+/* INSERT THE DOT STYLING HERE */
 .status .dot {
-  width: 8px; height: 8px; /* Original */
-  background: var(--accent); /* Uses the reddish-orange accent */
-  border-radius: 50%;
-  opacity: 0.4; /* Original */
+  display: inline-block;
+  width: 8px; /* Adjust size as needed */
+  height: 8px; /* Adjust size as needed */
+  border-radius: 50%; /* Makes it a circle */
+  margin: 0 2px; /* Spacing between dots */
+  background-color: var(--accent-light); /* Default empty state */
+  transition: background-color 0.3s ease; /* Smooth transition for filling */
 }
+
+.status .dot.filled {
+  background-color: #ff5722; /* Full orange for completed focus sessions */
+  border-color: #ff5722; /* Match border color */
+}
+
 .status .dot.completed {
   opacity: 1; /* Original */
 }
@@ -380,41 +446,90 @@ body {
 }
 
 
-/* -- Adjustment View -- (largely untouched) */
+/* -- Adjustment View Specific Styles -- */
 .adjust-body {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem; /* Original */
+    flex: 1; /* Allows it to take up remaining vertical space */
+    display: flex;
+    align-items: center; /* Vertically center the content wrapper */
+    justify-content: center; /* Horizontally center the content wrapper */
+    padding: 1rem; /* Padding around the main content area */
 }
-/* .icon-btn-large was used here. We can make it a modifier or style specifically */
-.adjust-body .icon-btn { /* Target icon buttons within adjust-body */
-  width: 48px; height: 48px; /* Larger size */
-  background: var(--accent); /* Accent background for these specific buttons */
-  border: none; /* No border */
-  box-shadow: var(--shadow);
-  /* Icon color needs to be contrast on accent, typically white */
-  /* The generic icon rules set background-color: var(--fg) for mask. Override that here: */
-  background-color: #fff; /* Makes the icon glyph white */
-  /* Ensure --icon-plus and --icon-minus are defined and used */
-}
-/* The specific mask will be applied by .icon-btn.plus and .icon-btn.minus */
 
-.number-input {
-  width: 60px; /* Original */
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--fg);
-  color: var(--fg);
-  font-size: 2rem; /* Original */
-  text-align: center;
+/* Wrapper for the title and timer adjustment, stacked vertically */
+.adjust-content-wrapper {
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+    align-items: center; /* Center items horizontally within this wrapper */
+    gap: 2rem; /* Space between the title and the timer adjustment row */
+    width: 100%; /* Take full width to allow centering of its children */
 }
+
+/* Styling for the title within the adjustment view (e.g., "Focus Session") */
+.adjust-title {
+    font-size: 1.5rem; /* Larger font size for the title */
+    font-weight: 500;
+    color: var(--fg);
+    text-align: center;
+    margin-bottom: 0; /* Remove default bottom margin */
+}
+
+/* Container for the minus button, number input, and plus button, arranged horizontally */
+.timer-adjustment-container {
+    display: flex;
+    align-items: center; /* Vertically align items in the row */
+    justify-content: center; /* Horizontally center the row */
+    gap: 2rem; /* Space between the buttons and the input group */
+}
+
+/* Styling for the numeric input field */
+.number-input {
+    width: 80px; /* Wider for the large number */
+    background: none; /* No background */
+    border: none; /* No default border */
+    border-bottom: 1px solid var(--fg); /* Bottom border */
+    color: var(--fg); /* Text color */
+    font-size: 3rem; /* Large font size for the number */
+    text-align: center; /* Center the text */
+    padding-bottom: 0.25rem; /* Padding below the number */
+    outline: none; /* Remove outline on focus */
+}
+
+/* Hide scrollbar / spinner for number input */
+ .number-input::-webkit-outer-spin-button,
+ .number-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+} 
+
+ .number-input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* Styling for the unit text (e.g., "min" or "Sess.") */
 .adjust-unit {
-  text-align: center;
-  padding-bottom: 1rem; /* Original */
-  font-size: 0.9rem;   /* Original */
-  color: var(--accent);
+    text-align: center;
+    padding-top: 0.25rem; /* Space above the unit */
+    font-size: 1rem; /* Font size for the unit */
+    color: var(--fg); /* Color of the unit text */
+    opacity: 0.8; /* Slightly faded */
+}
+
+/* Styling for the unit text (e.g., "min" or "Sess.") */
+.adjust-unit {
+    text-align: center;
+    padding-top: 0.25rem; /* Space above the unit */
+    font-size: 1rem; /* Font size for the unit */
+    color: var(--fg); /* Color of the unit text */
+    opacity: 0.8; /* Slightly faded */
+}
+
+/* New group for number input and unit, stacked vertically. */
+/* This rule was already there, but keeping it for completeness if you replace the whole block */
+.adjust-input-group {
+    display: flex;
+    flex-direction: column; /* Stack input and unit vertically */
+    align-items: center; /* Center them horizontally */
+    justify-content: center;
 }
 
 /* -- Transitions -- */

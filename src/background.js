@@ -32,32 +32,37 @@ chrome.runtime.onInstalled.addListener(() => {
 
 // Listen to messages from popup.js
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  switch (msg.action) {
-    case 'start':
-      startTimer();
-      break;
-    case 'pause':
-      pauseTimer();
-      break;
-    case 'reset':
-      resetTimer();
-      break;
-    case 'updateDurations':
-      // msg.durations = { focus, shortBreak, longBreak, sessionsBeforeLong }
-      chrome.storage.local.set(msg.durations);
-      // also reset remainingSec if timer is not running and we're on that session
-      chrome.storage.local.get(['timerRunning','currentSession'], prefs => {
-        if (!prefs.timerRunning) {
-          chrome.storage.local.get(prefs.currentSession, d => {
-            chrome.storage.local.set({ remainingSec: d[prefs.currentSession] * 60 });
-            updateBadge(d[prefs.currentSession] * 60, prefs.currentSession);
-          });
-        }
-      });
-      break;
+  try { // Added try/catch
+    switch (msg.action) {
+      case 'start':
+        startTimer();
+        break;
+      case 'pause':
+        pauseTimer();
+        break;
+      case 'reset':
+        resetTimer();
+        break;
+      case 'updateDurations':
+        // msg.durations = { focus, shortBreak, longBreak, sessionsBeforeLong }
+        chrome.storage.local.set(msg.durations);
+        // also reset remainingSec if timer is not running and we're on that session
+        chrome.storage.local.get(['timerRunning','currentSession'], prefs => {
+          if (!prefs.timerRunning) {
+            chrome.storage.local.get(prefs.currentSession, d => {
+              chrome.storage.local.set({ remainingSec: d[prefs.currentSession] * 60 });
+              updateBadge(d[prefs.currentSession] * 60, prefs.currentSession);
+            });
+          }
+        });
+        break;
+    }
+    sendResponse();
+  } catch (e) {
+    console.error("Error in chrome.runtime.onMessage listener:", e);
+    sendResponse({ error: e.message }); // Send response even on error
   }
-  sendResponse();
-  return true;
+  return true; // Indicates asynchronous response
 });
 
 
@@ -65,44 +70,54 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 chrome.alarms.onAlarm.addListener(alarm => {
   if (alarm.name !== ALARM_NAME) return;
 
-  chrome.storage.local.get([
-    'timerRunning','remainingSec',
-    'focus','shortBreak','longBreak',
-    'currentSession','sessionCount','sessionsBeforeLong'
-  ], prefs => {
-    if (!prefs.timerRunning) return;
+  try { // Added try/catch for the main alarm logic
+    chrome.storage.local.get([
+      'timerRunning','remainingSec',
+      'focus','shortBreak','longBreak',
+      'currentSession','sessionCount','sessionsBeforeLong'
+    ], prefs => {
+      if (!prefs.timerRunning) return;
 
-    let { remainingSec, currentSession, sessionCount, sessionsBeforeLong } = prefs;
-    remainingSec--;
+      let { remainingSec, currentSession, sessionCount, sessionsBeforeLong } = prefs;
 
-    if (remainingSec > 0) {
-      // update countdown
-      chrome.storage.local.set({ remainingSec });
-      updateBadge(remainingSec, currentSession);
-    } else {
-      // session ended
-      chrome.storage.local.set({ timerRunning: false });
-      clearAlarm();
-      playBell();
-      notifyEndOfSession(currentSession);
+      // 1. Decrement remainingSec
+      remainingSec--;
 
-      // determine next session
-      let nextSession = 'focus';
-      let nextCount = sessionCount;
-      if (currentSession === 'focus') {
-        nextCount++;
-        nextSession = (nextCount % sessionsBeforeLong === 0) ? 'longBreak' : 'shortBreak';
-      }
-      // reset for next
-      const nextDurMin = prefs[nextSession];
-      chrome.storage.local.set({
-        currentSession: nextSession,
-        sessionCount: nextCount,
-        remainingSec: nextDurMin * 60
+      // 2. ALWAYS update storage and badge with the new remainingSec.
+      chrome.storage.local.set({ remainingSec }, () => {
+          updateBadge(remainingSec, currentSession); // Update badge with current remainingSec (can be 0)
       });
-      updateBadge(nextDurMin * 60, nextSession);
-    }
-  });
+
+      // 3. Check if session has ended (remainingSec is now 0 or less)
+      if (remainingSec <= 0) {
+        // session ended
+        chrome.storage.local.set({ timerRunning: false }); // Temporarily set to false, will be re-enabled by startTimer()
+        clearAlarm();
+        playBell();
+        notifyEndOfSession(currentSession);
+
+        // determine next session
+        let nextSession = 'focus';
+        let nextCount = sessionCount;
+        if (currentSession === 'focus') {
+          nextCount++;
+          nextSession = (nextCount % sessionsBeforeLong === 0) ? 'longBreak' : 'shortBreak';
+        }
+        // reset for next
+        const nextDurMin = prefs[nextSession];
+        chrome.storage.local.set({
+          currentSession: nextSession,
+          sessionCount: nextCount,
+          remainingSec: nextDurMin * 60 // Set remainingSec for the *new* session
+        }, () => {
+            updateBadge(nextDurMin * 60, nextSession); // Update badge for the new session
+            startTimer(); // NEW: Automatically start the next session!
+        });
+      }
+    });
+  } catch (e) {
+    console.error("Error in ALARM tick handler:", e);
+  }
 });
 
 
@@ -130,19 +145,16 @@ function pauseTimer() {
 
 function resetTimer() {
   // Always reset to the default focus session values
-  chrome.storage.local.get(['focus'], prefs => { // Only need to get 'focus' here
+  chrome.storage.local.get(['focus'], prefs => {
     chrome.storage.local.set({
       timerRunning: false,
       sessionCount: 0,
-      currentSession: 'focus', // Explicitly set to focus
-      remainingSec: prefs.focus * 60 // Reset to focus duration in seconds
-    }, () => { // Callback after storage is set
+      currentSession: 'focus',
+      remainingSec: prefs.focus * 60
+    }, () => {
       clearAlarm();
-      // Clear the badge text directly
       chrome.action.setBadgeText({ text: '' });
-      // Set badge background color to focus color
       chrome.action.setBadgeBackgroundColor({ color: '#ff5722' });
-      // No need to call updateBadge here, as we explicitly clear it and set color.
     });
   });
 }
@@ -174,7 +186,34 @@ function notifyEndOfSession(session) {
   });
 }
 
-function playBell() {
-  const audio = new Audio(chrome.runtime.getURL('sounds/bell.mp3'));
-  audio.play();
+// MODIFIED playBell function to use offscreen document
+async function playBell() {
+  await setupOffscreenDocument(); // Ensure offscreen document is ready
+  chrome.runtime.sendMessage({
+    type: 'playAudio',
+    src: chrome.runtime.getURL('/sounds/ding-ding-small-bell.mp3') // Correct path to your sound file
+  });
+}
+
+// NEW: Function to manage the offscreen document
+let offscreenCreating; // A promise to avoid multiple creation attempts
+
+async function setupOffscreenDocument() {
+  // Check if an offscreen document is already open
+  if (await chrome.offscreen.hasDocument()) {
+    return;
+  }
+
+  // If not, and we're not already trying to create one, create it
+  if (offscreenCreating) {
+    await offscreenCreating;
+  } else {
+    offscreenCreating = chrome.offscreen.createDocument({
+      url: 'src/offscreen.html', // Path to your offscreen.html
+      reasons: ['AUDIO_PLAYBACK'],
+      justification: 'Plays alarm sound for pomodoro timer.'
+    });
+    await offscreenCreating;
+    offscreenCreating = null; // Reset the promise after creation
+  }
 }

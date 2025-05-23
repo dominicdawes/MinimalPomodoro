@@ -13,7 +13,20 @@
     "storage",
     "notifications",
     "alarms",
-    "action"
+    "action",
+    "offscreen"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "sounds/ding-ding-small-bell.mp3",
+        "icons/fluent-eye-16-reg.svg",
+        "icons/fluent-drink-coffee-16-regular.svg",
+        "src/offscreen.html",           // <--- Declare your offscreen document
+        "src/offscreen.js"              // <--- Declare your offscreen script
+      ],
+      "matches": ["<all_urls>"]
+    }
   ],
   "host_permissions": ["<all_urls>"],   // if you ever pull in remote resources
   "background": {

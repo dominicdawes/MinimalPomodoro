@@ -43,6 +43,10 @@ const increaseBtn     = document.getElementById('increase');
 const tabDuration     = document.getElementById('tab-duration');
 const tabNotifications = document.getElementById('tab-preferences'); // Corrected from original typo `tabPreferences`
 
+// specific icons
+const eyeIcon = document.querySelector('.icon-btn.eye');
+const coffeeIcon = document.querySelector('.icon-btn.coffee');
+
 let currentAdjustKey = null; // To store which setting is being adjusted
 
 // ────────────────────────────────────────────────────────────
@@ -81,7 +85,7 @@ function openAdjustView(key) {
       case 'shortBreak': titleText = 'Short Break'; break;
       case 'longBreak': titleText = 'Long Break'; break;
       case 'sessionsBeforeLong':
-        titleText = 'Sessions Before Long Break';
+        titleText = 'Number of Sessions';
         unitText = 'Sess.';
         break;
     }
@@ -94,94 +98,81 @@ function openAdjustView(key) {
 
 // Refresh everything from chrome.storage
 function refreshUI() {
-  chrome.storage.local.get(null, prefs => {
-    const defaults = { // Define defaults here in case some prefs are not set
-      focus: 25,
-      shortBreak: 5,
-      longBreak: 15,
-      sessionsBeforeLong: 4,
-      currentSession: 'focus',
-      remainingSec: 25 * 60,
-      sessionCount: 0,
-      timerRunning: false
-    };
-    const currentPrefs = { ...defaults, ...prefs };
+  try { // Added try/catch for the main UI refresh logic
+    chrome.storage.local.get(null, prefs => {
+      const defaults = { // Define defaults here in case some prefs are not set
+        focus: 25,
+        shortBreak: 5,
+        longBreak: 15,
+        sessionsBeforeLong: 4,
+        currentSession: 'focus',
+        remainingSec: 25 * 60,
+        sessionCount: 0,
+        timerRunning: false
+      };
+      const currentPrefs = { ...defaults, ...prefs };
 
-    const {
-      focus, shortBreak, longBreak, sessionsBeforeLong,
-      currentSession, remainingSec, sessionCount, timerRunning
-    } = currentPrefs;
+      const {
+        focus, shortBreak, longBreak, sessionsBeforeLong,
+        currentSession, remainingSec, sessionCount, timerRunning
+      } = currentPrefs;
 
-    // time display
-    timeDisplay.textContent = formatTime(remainingSec);
-    sessionLabel.textContent = labelCase(currentSession);
+      // Update eye/coffee icon based on current session
+      if (eyeIcon) {
+        if (currentSession === 'focus') {
+          eyeIcon.classList.remove('coffee');
+          eyeIcon.classList.add('eye');
+        } else { // This will apply for 'shortBreak' and 'longBreak'
+          eyeIcon.classList.remove('eye');
+          eyeIcon.classList.add('coffee');
+        }
+      }
 
-    // Donut progress calculation (ENHANCED WITH ROUNDED EDGE)
-    const totalDurationForCurrentSession = currentPrefs[currentSession] * 60;
-    let deg;
-    let percent_of_donut;
+      // time display
+      timeDisplay.textContent = formatTime(remainingSec);
+      sessionLabel.textContent = labelCase(currentSession);
 
-    if (totalDurationForCurrentSession > 0) {
-        const elapsedSec = totalDurationForCurrentSession - remainingSec;
-        percent_of_donut = (elapsedSec / totalDurationForCurrentSession) * 100;
-        deg = (elapsedSec / totalDurationForCurrentSession) * 360;
-        
-        console.log('=== DONUT DEBUG ===');
-        console.log('Percent of Donut:', percent_of_donut.toFixed(2) + '%');
-        console.log('Degrees:', deg.toFixed(2));
-        console.log('==================');
-    } else {
-        percent_of_donut = 0;
-        deg = 0;
-    }
+      // Donut progress calculation (ENHANCED WITH ROUNDED EDGE)
+      const totalDurationForCurrentSession = currentPrefs[currentSession] * 60;
+      let deg;
+      let percent_of_donut;
 
-    deg = Math.max(0, Math.min(360, deg));
+      if (totalDurationForCurrentSession > 0) {
+          const elapsedSec = totalDurationForCurrentSession - remainingSec;
+          percent_of_donut = (elapsedSec / totalDurationForCurrentSession) * 100;
+          deg = (elapsedSec / totalDurationForCurrentSession) * 360;
+      } else {
+          percent_of_donut = 0;
+          deg = 0;
+      }
 
-    // Set the CSS variables
-    donutProgress.style.setProperty('--deg', `${deg}deg`);
-    donutProgress.setAttribute('data-deg', `${deg.toFixed(1)}°`);
+      deg = Math.max(0, Math.min(360, deg));
 
-    // Control rounded edge visibility - hide when progress is very small
-    const showRoundedEdge = deg > 5; // Only show after 5 degrees of progress
-    donutProgress.style.setProperty('--progress-opacity', showRoundedEdge ? '1' : '0');
+      // Set the CSS variables
+      donutProgress.style.setProperty('--deg', `${deg}deg`);
+      donutProgress.setAttribute('data-deg', `${deg.toFixed(1)}°`);
 
-    // Enhanced debug info
-    window.donut_debug = {
-        currentSession: currentSession,
-        totalDuration: totalDurationForCurrentSession,
-        remainingSec: remainingSec,
-        elapsedSec: totalDurationForCurrentSession - remainingSec,
-        percent_of_donut: percent_of_donut,
-        degrees: deg,
-        showRoundedEdge: showRoundedEdge,
-        cssVarSet: donutProgress.style.getPropertyValue('--deg')
-    };
+      // Control rounded edge visibility - hide when progress is very small
+      const showRoundedEdge = deg > 5; // Only show after 5 degrees of progress
+      donutProgress.style.setProperty('--progress-opacity', showRoundedEdge ? '1' : '0');
 
-    // console.log('CSS Variable --deg set to:', donutProgress.style.getPropertyValue('--deg'));
-    // console.log('Rounded edge visible:', showRoundedEdge);
+      // status dots
+      renderStatusDots(sessionCount, sessionsBeforeLong);
 
+      // button text
+      btnStartPause.textContent = timerRunning ? 'PAUSE' : 'START';
 
-
-    // status dots
-    renderStatusDots(sessionCount, sessionsBeforeLong);
-
-    // button text
-    btnStartPause.textContent = timerRunning ? 'PAUSE' : 'START';
-
-    // labels for settings
-    if (labels.focus) labels.focus.innerText = `${focus} min`;
-    if (labels.shortBreak) labels.shortBreak.innerText = `${shortBreak} min`;
-    if (labels.longBreak) labels.longBreak.innerText = `${longBreak} min`;
-    if (labels.sessionsBeforeLong) labels.sessionsBeforeLong.innerText = `${sessionsBeforeLong} Sess.`;
-  });
+      // labels for settings
+      if (labels.focus) labels.focus.innerText = `${focus} min`;
+      if (labels.shortBreak) labels.shortBreak.innerText = `${shortBreak} min`;
+      if (labels.longBreak) labels.longBreak.innerText = `${longBreak} min`;
+      if (labels.sessionsBeforeLong) labels.sessionsBeforeLong.innerText = `${sessionsBeforeLong} Sess.`;
+    });
+  } catch (e) {
+    console.error("Error in refreshUI:", e);
+  }
 }
 
-// Listen for background updates
-chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local') { // Check for any relevant change
-    refreshUI();
-  }
-});
 
 // ────────────────────────────────────────────────────────────
 //  Bind Buttons & UI Actions
@@ -304,12 +295,24 @@ function labelCase(key) {
 function renderStatusDots(count, cycleLen) {
   if (!statusDiv) return;
   statusDiv.innerHTML = '';
-  if (typeof count !== 'number' || typeof cycleLen !== 'number' || cycleLen <= 0) {
-      return; // Avoid errors if data is not as expected
+  if (typeof count !== 'number' || typeof cycleLen !== 'number') {
+    // console.warn("Invalid count or cycleLen for renderStatusDots:", count, cycleLen);
+    return;
   }
+
   for (let i = 0; i < cycleLen; i++) {
-    const dot = document.createElement('div');
-    dot.className = 'dot' + (i < (count % cycleLen) ? ' completed' : '');
+    const dot = document.createElement('span');
+    dot.classList.add('dot');
+    if (i < count) {
+      dot.classList.add('filled');
+    }
     statusDiv.appendChild(dot);
   }
 }
+
+// Listener for storage changes from background script
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace === 'local') {
+    refreshUI(); // Re-render UI on any relevant storage change
+  }
+});

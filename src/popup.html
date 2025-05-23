@@ -1,29 +1,83 @@
-<!-- popup.html -->
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <link rel="stylesheet" href="popup.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pomodoro</title>
+  <link rel="stylesheet" href="popup.css" />
 </head>
-<body data-theme="light">
-  <header>
-    <h1>Pomodoro</h1>
-    <label class="switch">
-      <input type="checkbox" id="themeToggle">
-      <span class="slider"></span>
-    </label>
-  </header>
-  <section class="settings">
-    <div>
-      <label>Focus: <span id="focusLabel">25</span>m</label>
-      <input type="range" id="focusRange" min="5" max="60" step="5">
-    </div>
-    <div>
-      <label>Break: <span id="breakLabel">5</span>m</label>
-      <input type="range" id="breakRange" min="1" max="30" step="1">
-    </div>
-  </section>
-  <section class="controls">
-    <button id="reset">Reset</button>
-    <button id="skip">Skip</button>
-  </section>
-  <div id="clock"></div>
+<body>
+  <div id="app">
+
+    <section id="view-timer" class="view active">
+      <header class="top-bar">
+        </header>
+
+      <div class="timer-container">
+        <div class="donut" id="donut">
+          <div class="progress"></div>
+          <div class="inner">
+            <div class="icon-btn eye"></div>
+
+            <div id="time-display">25:00</div>
+            <div id="session-label">FOCUS</div>
+            <div id="status-indicators" class="status"></div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="bottom-bar">
+        <button id="btn-reset" class="icon-btn reset"></button>
+        <button id="btn-start-pause" class="primary-btn">START</button>
+        <button id="btn-settings" class="icon-btn settings"></button>
+      </footer>
+
+    </section>
+
+    <section id="view-settings" class="view">
+      <header class="top-bar">
+        <button id="btn-back-settings" class="icon-btn back"></button> <div class="title">Settings</div>
+        <button id="btn-close-settings" class="icon-btn close"></button>
+      </header>
+      <div class="tabs">
+        <button id="tab-duration" class="tab active">DURATION</button>
+        <button id="tab-preferences" class="tab">PREFERENCES</button>
+      </div>
+      <div class="settings-list">
+        <div class="setting-item" data-key="focus">
+          <span>Focus Session</span>
+          <span id="label-focus">25 min</span>
+          <span class="arrow"></span> </div>
+        <div class="setting-item" data-key="shortBreak">
+          <span>Short Break</span>
+          <span id="label-shortBreak">5 min</span>
+          <span class="arrow"></span>
+        </div>
+        <div class="setting-item" data-key="longBreak">
+          <span>Long Break</span>
+          <span id="label-longBreak">15 min</span>
+          <span class="arrow"></span>
+        </div>
+        <div class="setting-item" data-key="sessionsBeforeLong">
+          <span>Long break after</span>
+          <span id="label-sessionsBeforeLong">4 Sess.</span>
+          <span class="arrow"></span>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-adjust" class="view">
+      <header class="top-bar">
+        <button id="btn-back-adjust" class="icon-btn back"></button>
+        <div class="title" id="adjust-title">Adjust</div>
+        <div class="spacer"></div> </header>
+      <div class="adjust-body">
+        <button id="decrease" class="icon-btn minus"></button> <input type="number" id="adjust-input" min="1" class="number-input" />
+        <button id="increase" class="icon-btn plus"></button> </div>
+      <div class="adjust-unit" id="adjust-unit">min</div>
+    </section>
+
+  </div>
   <script src="popup.js"></script>
 </body>
+</html>

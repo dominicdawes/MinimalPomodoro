@@ -1,37 +1,414 @@
 :root {
-  --bg: #fff;
-  --fg: #333;
-  --accent: #e53935;
-  --shadow: 0 4px 12px rgba(0,0,0,0.1);
+  /* Color Scheme - Adjusted for the desired darker UI */
+  --bg: #0F0F0F; /* Darker background */
+  --fg: #E0E0E0; /* Slightly softer foreground white */
+  --accent: #ff5722; /* Reddish-orange for active elements like dots/progress */
+  --accent-light: rgba(255,87,34,0.3);
+  --shadow: 0 2px 8px rgba(0,0,0,0.3); /* Subtler shadow */
+  --font: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --break-color: #4caf50;
+
+  /* New variables for the Start Button */
+  --start-btn-bg: #4A4A4A;  /* Gray background for START button */
+  --start-btn-fg: #1E1E1E;  /* Dark text for START button */
+  --start-btn-border: #4A4A4A; /* Border for START button, matching background */
+
+
+  /* Icons as CSS vars */
+  --icon-clock16:   url('/icons/clock-16.png');
+  --icon-clock48:   url('/icons/clock-48.png');
+  --icon-eye:       url('/icons/fluent-eye-16-reg.svg');
+  --icon-reset:     url('/icons/fluent-arrow-counterclockwise-16-reg.svg');
+  --icon-back:      url('/icons/fluent-chevron-left-16-regular.svg');
+  --icon-forward:   url('/icons/fluent-chevron-right-16-regular.svg');
+  --icon-plus:      url('/icons/fluent-add-16-regular.svg');
+  --icon-minus:     url('/icons/fluent-subtract-16-regular.svg');
+  --icon-settings:  url('/icons/fluent-settings-20-regular.svg');
+  --icon-coffee:    url('/icons/fluent-drink-coffee-16-regular.svg');
+  /* Add --icon-close if you have a close icon for settings page, e.g.: */
+  /* --icon-close: url('/icons/fluent-dismiss-16-regular.svg'); */
 }
-[data-theme="dark"] {
-  --bg: #1e1e1e;
-  --fg: #eee;
-  --accent: #ff7043;
-  --shadow: 0 4px 12px rgba(0,0,0,0.5);
+
+/* -- Theme override for light mode: set on <body data-theme="light"> -- */
+/* Kept for completeness, but primary styling targets the dark theme from screenshot */
+body[data-theme="light"] {
+  --bg: #ffffff;
+  --fg: #222222;
+  --accent: #ff5722;
+  --accent-light: rgba(255,87,34,0.1);
+  --start-btn-bg: #E0E0E0; /* Light mode Start button background */
+  --start-btn-fg: #222222;  /* Light mode Start button text */
+  --start-btn-border: #CCCCCC;
+}
+
+/* The body[data-theme="dark"] rule is removed as the :root now defaults
+  to the desired dark theme. If you implement a theme switcher, 
+  you might re-introduce it or adjust :root and light theme accordingly.
+*/
+
+/* ——— Icons config (Simplified and Corrected) ——— */
+.icon-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;          /* Icon glyph will be smaller, within this tap target */
+  height: 40px;
+  padding: 8px;         /* Padding around the icon mask area */
+  border: 1px solid var(--fg); /* Default border for icon buttons */
+  border-radius: 50%;
+  background-color: transparent; /* Ensure button bg is transparent */
+  cursor: pointer;
+  /* The mask will be applied directly to this element using specific classes below */
+}
+
+/* The generic .icon-btn::before and specific .icon-btn.semantic::before rules
+  have been removed. Icons are now applied directly via mask on the .icon-btn element itself.
+  This gives better control over icon size and placement.
+*/
+
+/* Map semantic classes → CSS masks with var(--fg) painting the icon */
+/* This approach masks the button itself, using its background for the icon color. */
+.icon-btn.clock16,
+.icon-btn.clock48,
+.icon-btn.eye,
+.icon-btn.reset,
+.icon-btn.back,
+.icon-btn.forward,
+.icon-btn.plus,
+.icon-btn.minus,
+.icon-btn.settings,
+.icon-btn.coffee,
+.icon-btn.close { /* Added .close for completeness if an icon is defined */
+  background-image: none; /* Remove any accidental background images */
+  background-color: var(--fg); /* This color becomes the icon color through the mask */
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain; /* Or set to fixed size like 16px 16px if needed */
+  mask-size: contain;
+}
+
+/* Assign the correct mask image to each semantic class */
+.icon-btn.clock16   { -webkit-mask-image: var(--icon-clock16);   mask-image: var(--icon-clock16); }
+.icon-btn.clock48   { -webkit-mask-image: var(--icon-clock48);   mask-image: var(--icon-clock48); }
+.icon-btn.eye       { -webkit-mask-image: var(--icon-eye);       mask-image: var(--icon-eye); }
+.icon-btn.reset     { -webkit-mask-image: var(--icon-reset);     mask-image: var(--icon-reset); }
+.icon-btn.back      { -webkit-mask-image: var(--icon-back);      mask-image: var(--icon-back); }
+.icon-btn.forward   { -webkit-mask-image: var(--icon-forward);   mask-image: var(--icon-forward); }
+.icon-btn.plus      { -webkit-mask-image: var(--icon-plus);      mask-image: var(--icon-plus); }
+.icon-btn.minus     { -webkit-mask-image: var(--icon-minus);     mask-image: var(--icon-minus); }
+.icon-btn.settings  { -webkit-mask-image: var(--icon-settings);  mask-image: var(--icon-settings); }
+.icon-btn.coffee    { -webkit-mask-image: var(--icon-coffee);    mask-image: var(--icon-coffee); }
+/* Example for a close button, ensure --icon-close is defined in :root */
+/* .icon-btn.close  { -webkit-mask-image: var(--icon-close); mask-image: var(--icon-close); } */
+
+
+/* -- Box Layout -- */
+* {
+  box-sizing: border-box;
 }
 body {
+  margin: 0;
+  padding: 0; /* No padding on body itself, handled by views if needed */
+  width: 340px; /* As per original */
   background: var(--bg);
   color: var(--fg);
-  font-family: sans-serif;
-  padding: 1rem;
-  width: 240px;
-  box-shadow: var(--shadow);
-  border-radius: 8px;
+  font-family: var(--font);
+  user-select: none;
+  /* To match the rounded corners of the popup window in the desired screenshot (OS dependent) */
+  /* border-radius: 8px; /* This might be needed if window isn't naturally rounded */
+  /* overflow: hidden;  /* To clip children to the body's border-radius */
 }
-#clock {
-  font-size: 2rem;
-  text-align: center;
-  margin: 0.5rem 0;
+
+/* -- Common Layout -- */
+.view {
+  display: none;
+  flex-direction: column;
+  height: 100%; /* Consider min-height if content is dynamic */
+  /* padding: 0.5rem; /* Optional: Add some padding to views if needed */
 }
-button {
+.view.active {
+  display: flex;
+}
+
+/* bottom‐row layout */
+.bottom-bar {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  padding: 0.75rem 0.5rem; /* Increased vertical padding, added some horizontal */
+}
+
+/* All buttons in bottom-bar get base styling, but specific buttons override */
+.bottom-bar > button {
+  border-radius: 50%; /* Default to circular for icon buttons */
+}
+
+/* Icon buttons in bottom-bar: circular border and specific icon color */
+.bottom-bar .icon-btn {
+  padding: 8px; /* Retains from .icon-btn */
+  border: 1px solid var(--fg); /* White border */
+  /* Icon color is var(--fg) via the mask background rule */
+}
+
+/* START button: pill shape, specific colors, flat look */
+.bottom-bar .primary-btn {
+  background: var(--start-btn-bg);
+  color: var(--start-btn-fg);
+  border: 1px solid var(--start-btn-border); /* Subtle border matching background or slightly different */
+  padding: 0.75rem 30px;
+  border-radius: 24px; /* Pill shape */
+  flex: 0 0 auto;      /* Don’t stretch to fill */
+  margin: 0;           /* Remove any extra margins from generic button */
+  font-size: 1rem;     /* Copied from .primary-btn */
+  font-weight: 500;    /* Copied from .primary-btn */
+  box-shadow: none;    /* Flat look as per desired UI */
+  cursor: pointer;     /* Copied from .primary-btn */
+}
+
+.top-bar { /* Added basic styling for .top-bar consistent with original commented out */
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+}
+.top-bar .spacer {
+  flex: 1;
+}
+.title {
+  flex: 1; text-align: center; font-weight: 500;
+}
+
+/* -- Timer View -- */
+#view-timer {
+  /* display: flex; Already handled by .view.active */
+  flex-direction: column;
+  height: 100%;
+}
+.timer-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Base ring behind everything */
+.donut {
+  position: relative;
+  width: 200px;
+  height: 200px;
+}
+.donut::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: #333;  /* Dark‐gray ring, contrasts with new darker --bg */
+}
+
+/* Active slice on top */
+.progress {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  /* Conic gradient for scarlet to orange to bright/white orange progress */
+  background: conic-gradient(
+    #FF2D00 0deg,   /* Scarlet start */
+    #FF6F00 120deg, /* Transition to orange */
+    #FFA700 240deg, /* Towards brighter orange/white-orange */
+    transparent var(--deg, 0deg), /* Progress fill */
+    transparent 360deg
+  );
+  transition: background 0.5s linear;
+}
+
+/* New CSS for the rounded leading edge */
+.progress::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%; /* Position at the top center of the circle */
+  transform-origin: 0 100%; /* Rotate around the center of the circle */
+  transform: translateX(-50%) rotate(var(--deg, 0deg)); /* Rotate based on progress */
+  
+  width: 12px; /* Adjust to match the thickness of your donut stroke */
+  height: 12px; /* Should be equal to width for a perfect circle */
+  border-radius: 50%; /* Makes it a perfect circle */
+  
+  /* Apply the color that should be at the leading edge.
+     This typically means the color from the end of your gradient for the filled part.
+     For your gradient, it's the bright/white orange or a similar shade. */
+  background-color: #FFA700; /* Example: Bright orange/white-orange */
+  
+  /* Ensure it's always visible when progress exists */
+  opacity: 1; 
+  /* Optionally, you can hide it when --deg is 0 if you don't want a dot at the start */
+  /* Or make it transition out if --deg is 0 */
+  /* transition: transform 0.5s linear, opacity 0.1s linear; */
+}
+
+/* Center “hole” & contents */
+.inner {
+  position: absolute;
+  inset: 12px; /* Original */
+  border-radius: 50%;
+  background: var(--bg); /* Matches main background */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Tweak the eye icon: remove button-like styling */
+.inner .icon-btn.eye {
+  width: 20px;  /* Keep size from original */
+  height: 20px; /* Keep size from original */
+  margin-bottom: 0.5rem; /* Original spacing */
+  border: none;          /* Remove border */
+  padding: 0;            /* Remove padding */
+  background-color: var(--fg); /* Icon color, applied via mask */
+  /* Mask properties are inherited from .icon-btn.eye */
+}
+
+#time-display {
+  font-size: 2.5rem; /* Original */
+  font-weight: 300;  /* Original */
+}
+
+#session-label {
+  margin-top: 0.25rem; /* Original */
+  font-size: 0.9rem;   /* Original */
+  letter-spacing: 1px; /* Original */
+}
+.status {
+  display: flex;
+  gap: 4px;
+  margin-top: 0.5rem; /* Original */
+}
+.status .dot {
+  width: 8px; height: 8px; /* Original */
+  background: var(--accent); /* Uses the reddish-orange accent */
+  border-radius: 50%;
+  opacity: 0.4; /* Original */
+}
+.status .dot.completed {
+  opacity: 1; /* Original */
+}
+
+/* General .primary-btn, less specific than .bottom-bar .primary-btn */
+/* This can be a fallback or used in other views if needed */
+.primary-btn {
+  padding: 0.75rem 1rem; /* Default padding */
   background: var(--accent);
-  color: #fff;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  box-shadow: var(--shadow);
+  border-radius: 24px;
+  font-size: 1rem;
+  font-weight: 500;
+  box-shadow: var(--shadow); /* Uses the new subtler shadow */
+  color: #fff; /* Default text color for primary buttons */
   cursor: pointer;
+  /* flex: 1; This was here, but better to control flex in context (e.g., .bottom-bar) */
+  /* margin: 0 1rem; Same as above, context-specific margins are better */
 }
-button:hover { opacity: 0.9; }
-.switch { /* custom toggle styling */ }
+
+
+/* -- Settings View -- (largely untouched, but benefits from global color changes) */
+.tabs {
+  display: flex;
+  margin: 0.5rem; /* Original */
+}
+.tab {
+  flex: 1;
+  padding: 0.5rem 0; /* Original */
+  background: none;
+  border: none;
+  color: var(--fg);
+  font-weight: 500;
+  cursor: pointer;
+  opacity: 0.6; /* Original */
+}
+.tab.active {
+  opacity: 1;
+  border-bottom: 2px solid var(--accent); /* Original */
+}
+.settings-list {
+  flex: 1;
+  overflow-y: auto; /* Original */
+}
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem; /* Original */
+  cursor: pointer;
+  transition: background 0.2s; /* Original */
+}
+.setting-item:hover {
+  background: rgba(255,255,255,0.05); /* Original */
+}
+.setting-item span:first-child {
+  font-size: 0.95rem; /* Original */
+}
+.setting-item .arrow {
+  /* This class was .icon-btn.forward.arrow */
+  /* If it's just an arrow visual, it doesn't need to be a full button */
+  /* Assuming it's one of the masked icons */
+  width: 16px; height: 16px; /* Explicit size for the arrow glyph area */
+  background-color: var(--fg); /* Color for the arrow */
+  opacity: 0.6; /* Original */
+  -webkit-mask-image: var(--icon-forward);
+  mask-image: var(--icon-forward);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  /* Remove button-specific styling if it's not interactive */
+  border: none;
+  padding: 0;
+}
+
+
+/* -- Adjustment View -- (largely untouched) */
+.adjust-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem; /* Original */
+}
+/* .icon-btn-large was used here. We can make it a modifier or style specifically */
+.adjust-body .icon-btn { /* Target icon buttons within adjust-body */
+  width: 48px; height: 48px; /* Larger size */
+  background: var(--accent); /* Accent background for these specific buttons */
+  border: none; /* No border */
+  box-shadow: var(--shadow);
+  /* Icon color needs to be contrast on accent, typically white */
+  /* The generic icon rules set background-color: var(--fg) for mask. Override that here: */
+  background-color: #fff; /* Makes the icon glyph white */
+  /* Ensure --icon-plus and --icon-minus are defined and used */
+}
+/* The specific mask will be applied by .icon-btn.plus and .icon-btn.minus */
+
+.number-input {
+  width: 60px; /* Original */
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--fg);
+  color: var(--fg);
+  font-size: 2rem; /* Original */
+  text-align: center;
+}
+.adjust-unit {
+  text-align: center;
+  padding-bottom: 1rem; /* Original */
+  font-size: 0.9rem;   /* Original */
+  color: var(--accent);
+}
+
+/* -- Transitions -- */
+.view {
+  transition: opacity 0.3s ease, transform 0.3s ease; /* Original */
+}

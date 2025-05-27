@@ -16,6 +16,20 @@ const DEFAULTS = {
   timerRunning: false
 };
 
+// // Listen for the extension icon to be clicked (COMMENT OUT IF NOT: injecting HTML for rounding corners into the DOM)
+// chrome.action.onClicked.addListener((tab) => {
+//   // Get the current tab ID
+//   const tabId = tab.id;
+  
+//   // Inject the content script into the current tab
+//   chrome.scripting.executeScript({
+//     target: { tabId: tabId },
+//     files: ['src/content.js'] /* Updated path */
+//   });
+  
+//   console.log(`Content script injected into tab ${tabId}`);
+// });
+
 // On install or upgrade, seed defaults if none exist
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.get(Object.keys(DEFAULTS), prefs => {
@@ -42,6 +56,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         break;
       case 'reset':
         resetTimer();
+        break;
+      case 'skipSession': // New: Handle skip session action
+        skipToNextSession();
         break;
       case 'updateDurations':
         // msg.durations = { focus, shortBreak, longBreak, sessionsBeforeLong }
@@ -155,6 +172,53 @@ function resetTimer() {
       clearAlarm();
       chrome.action.setBadgeText({ text: '' });
       chrome.action.setBadgeBackgroundColor({ color: '#ff5722' });
+    });
+  });
+}
+
+// Function to skip to the next session
+function skipToNextSession() {
+  chrome.storage.local.get([
+    'currentSession', 'sessionCount', 'sessionsBeforeLong',
+    'focus', 'shortBreak', 'longBreak', 'timerRunning'
+  ], prefs => {
+    let { currentSession, sessionCount, sessionsBeforeLong, timerRunning } = prefs;
+
+    // Clear any running alarm and pause the timer
+    clearAlarm();
+    if (timerRunning) {
+      chrome.storage.local.set({ timerRunning: false });
+    }
+
+    let nextSession = 'focus';
+    let nextCount = sessionCount;
+
+    if (currentSession === 'focus') {
+      nextCount++;
+      nextSession = (nextCount % sessionsBeforeLong === 0) ? 'longBreak' : 'shortBreak';
+    } else if (currentSession === 'shortBreak') {
+      nextSession = 'focus';
+    } else if (currentSession === 'longBreak') {
+      // If currently in long break, and skipping, it should reset to focus
+      // and the button should be disabled as per requirement.
+      // This case should ideally not be reachable if the button is disabled.
+      // However, as a safeguard, we can reset to focus.
+      nextSession = 'focus';
+      nextCount = 0; // Reset session count after a long break
+    }
+
+    const nextDurMin = prefs[nextSession];
+    chrome.storage.local.set({
+      currentSession: nextSession,
+      sessionCount: nextCount,
+      remainingSec: nextDurMin * 60,
+      timerRunning: false // Ensure timer is paused after skipping
+    }, () => {
+      updateBadge(nextDurMin * 60, nextSession);
+      // If the timer was running, start the new session automatically
+      if (timerRunning) {
+        startTimer();
+      }
     });
   });
 }

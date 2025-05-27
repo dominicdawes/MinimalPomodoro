@@ -11,6 +11,7 @@ const donutProgress   = document.querySelector('#donut .progress');
 const statusDiv       = document.getElementById('status-indicators');
 const btnStartPause   = document.getElementById('btn-start-pause');
 const btnReset        = document.getElementById('btn-reset');
+const btnSkipFwd      = document.getElementById('btn-skip-fwd');
 
 // Views
 const viewTimer       = document.getElementById('view-timer');
@@ -162,6 +163,11 @@ function refreshUI() {
       // button text
       btnStartPause.textContent = timerRunning ? 'PAUSE' : 'START';
 
+      // Disable skip button if current session is 'longBreak'
+      if (btnSkipFwd) {
+        btnSkipFwd.disabled = (currentSession === 'longBreak');
+      }
+
       // labels for settings
       if (labels.focus) labels.focus.innerText = `${focus} min`;
       if (labels.shortBreak) labels.shortBreak.innerText = `${shortBreak} min`;
@@ -174,11 +180,12 @@ function refreshUI() {
 }
 
 
+
 // ────────────────────────────────────────────────────────────
 //  Bind Buttons & UI Actions
 // ────────────────────────────────────────────────────────────
 function bindUIActions() {
-  // Timer controls
+  // Event listener for Start/Stop Timer controls
   btnStartPause.addEventListener('click', () => {
     chrome.storage.local.get('timerRunning', prefs => {
       const action = prefs.timerRunning ? 'pause' : 'start';
@@ -186,12 +193,23 @@ function bindUIActions() {
     });
   });
 
+  // Event listener for reset button
   btnReset.addEventListener('click', () => {
     chrome.runtime.sendMessage({ action: 'reset' }, () => {
       // This callback executes AFTER the background script has processed the 'reset' action
       refreshUI();
     });
   });
+
+  // Skip Fwd button action
+  if (btnSkipFwd) {
+    btnSkipFwd.addEventListener('click', () => {
+      // Send a message to the background script to advance the session
+      chrome.runtime.sendMessage({ action: 'skipSession' }, () => {
+        refreshUI(); // Refresh UI after the session has been skipped
+      });
+    });
+  }
 
   // Navigation
   if (btnSettings) {

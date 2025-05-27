@@ -163,7 +163,9 @@ body[data-theme="light"] {
   background-color: rgba(255, 255, 255, 0.05); /* Similar to setting-item hover background */
 }
 
-/* -- Box Layout -- */
+/* ----------------------------------------------------------------------------
+                      App Box Layout (popup container)
+------------------------------------------------------------------------------ */
 * {
   box-sizing: border-box;
 }
@@ -178,6 +180,13 @@ body {
   /* To match the rounded corners of the popup window in the desired screenshot (OS dependent) */
   border-radius: 8px; /* This might be needed if window isn't naturally rounded */
   /* overflow: hidden;    /* To clip children to the body's border-radius */
+}
+
+#app {
+  border-radius: 30px; /* Fix: Apply 30px rounded corners to the main app container */
+  overflow: hidden; /* Fix: Ensure content within the app container is clipped by the rounded corners */
+  height: 100%; /* Ensure the app div takes full height */
+  width: 100%; /* Ensure the app div takes full width */
 }
 
 /* -- Common Layout -- */
@@ -228,7 +237,10 @@ body {
   flex: 1; text-align: center; font-weight: 500;
 }
 
-/* -- Timer View -- */
+/* ----------------------------------------------------------------------------
+                                Timer View
+------------------------------------------------------------------------------ */
+
 #view-timer {
   /* display: flex; Already handled by .view.active */
   flex-direction: column;
@@ -387,8 +399,35 @@ body {
   /* margin: 0 1rem; Same as above, context-specific margins are better */
 }
 
+.skip-fwd-btn {
+  background: none;
+  border: none;
+  color: var(--fg); /* Use foreground color for text */
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  margin-top: 0.5rem; /* Space it from the row of buttons above */
+  align-self: center; /* Center the button horizontally */
+  opacity: 0.7; /* Slightly faded when active */
+  transition: opacity 0.2s ease;
+}
 
-/* -- Settings View -- (largely untouched, but benefits from global color changes) */
+.skip-fwd-btn:hover:not(:disabled) {
+  opacity: 1; /* Full opacity on hover when not disabled */
+}
+
+.skip-fwd-btn:disabled {
+  color: #666; /* Lighter color when disabled */
+  cursor: not-allowed;
+  text-decoration: none; /* No underline when disabled */
+  opacity: 0.4; /* More faded when disabled */
+}
+
+/* ----------------------------------------------------------------------------
+   Settings View -- (largely untouched, but benefits from global color changes) 
+------------------------------------------------------------------------------ */
 .tabs {
   display: flex;
   margin: 0.5rem; /* Original */
@@ -446,7 +485,10 @@ body {
 }
 
 
-/* -- Adjustment View Specific Styles -- */
+
+/* ----------------------------------------------------------------------------
+                      Adjustment View Specific Styles
+------------------------------------------------------------------------------ */
 .adjust-body {
     flex: 1; /* Allows it to take up remaining vertical space */
     display: flex;

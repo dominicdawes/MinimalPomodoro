@@ -10,8 +10,7 @@
   <div id="app">
 
     <section id="view-timer" class="view active">
-      <header class="top-bar">
-        </header>
+      <header class="top-bar"></header>
 
       <div class="timer-container">
         <div class="donut" id="donut">
@@ -27,17 +26,30 @@
       </div>
 
       <footer class="bottom-bar">
-        <button id="btn-reset" class="icon-btn reset"></button>
+        <span class="icon-border-wrapper">
+          <button id="btn-reset" class="icon-btn reset">
+            <span class="icon"></span>
+          </button>
+        </span>
         <button id="btn-start-pause" class="primary-btn">START</button>
-        <button id="btn-settings" class="icon-btn settings"></button>
+        <span class="icon-border-wrapper">
+          <button id="btn-settings" class="icon-btn settings">
+            <span class="icon"></span>
+          </button>
+        </span>
       </footer>
-
+      <button id="btn-skip-fwd" class="skip-fwd-btn" disabled>Skip Fwd.</button>
     </section>
 
     <section id="view-settings" class="view">
       <header class="top-bar">
-        <button id="btn-back-settings" class="icon-btn back"></button> <div class="title">Settings</div>
-        <button id="btn-close-settings" class="icon-btn close"></button>
+        <span class="icon-border-wrapper">
+          <button id="btn-back-settings" class="icon-btn back"></button>
+        </span>
+        <div class="title">Settings</div>
+        <span class="icon-border-wrapper">
+          <button id="btn-close-settings" class="icon-btn close"></button>
+        </span>
       </header>
       <div class="tabs">
         <button id="tab-duration" class="tab active">DURATION</button>
@@ -68,13 +80,31 @@
 
     <section id="view-adjust" class="view">
       <header class="top-bar">
-        <button id="btn-back-adjust" class="icon-btn back"></button>
-        <div class="title" id="adjust-title">Adjust</div>
-        <div class="spacer"></div> </header>
+        <span class="icon-border-wrapper">
+            <button id="btn-back-adjust" class="icon-btn back"></button>
+        </span>
+        </header>
+
       <div class="adjust-body">
-        <button id="decrease" class="icon-btn minus"></button> <input type="number" id="adjust-input" min="1" class="number-input" />
-        <button id="increase" class="icon-btn plus"></button> </div>
-      <div class="adjust-unit" id="adjust-unit">min</div>
+        <div class="adjust-content-wrapper">
+            <div class="adjust-title" id="adjust-title">Focus Session</div>
+
+            <div class="timer-adjustment-container">
+                <span class="icon-square-wrapper">
+                    <button id="decrease" class="icon-btn minus"></button>
+                </span>
+
+                <div class="adjust-input-group">
+                    <input type="number" id="adjust-input" min="1" class="number-input" value="25" />
+                    <div class="adjust-unit" id="adjust-unit">min</div>
+                </div>
+
+                <span class="icon-square-wrapper">
+                    <button id="increase" class="icon-btn plus"></button>
+                </span>
+            </div>
+        </div>
+      </div>
     </section>
 
   </div>

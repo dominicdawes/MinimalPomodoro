@@ -6,14 +6,27 @@
   "version": "1.0.0",
   "description": "A sleek, offline-capable Pomodoro timer with badge countdowns and theming.",
   "icons": {
-    "16": "icons/clock-16.png",
-    "48": "icons/clock-48.png"
+    // "16": "icons/clock-16.png",
+    "48": "icons/app-icon-48.png"
   },
   "permissions": [
     "storage",
     "notifications",
     "alarms",
-    "action"
+    "action",
+    "offscreen"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "sounds/ding-ding-small-bell.mp3",
+        "icons/fluent-eye-16-reg.svg",
+        "icons/fluent-drink-coffee-16-regular.svg",
+        "src/offscreen.html",           // <--- Declare your offscreen document
+        "src/offscreen.js"              // <--- Declare your offscreen script
+      ],
+      "matches": ["<all_urls>"]
+    }
   ],
   "host_permissions": ["<all_urls>"],   // if you ever pull in remote resources
   "background": {
@@ -22,8 +35,8 @@
   "action": {
     "default_popup": "src/popup.html",
     "default_icon": {
-      "16": "icons/clock-16.png",
-      "48": "icons/clock-48.png"
+      // "16": "icons/app-icon-16.png",
+      "48": "icons/app-icon-48.png"
     }
   }
 }

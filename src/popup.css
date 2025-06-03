@@ -34,6 +34,8 @@
   --icon-settings:   url('/icons/fluent-settings-20-regular.svg');
   --icon-coffee:     url('/icons/fluent-drink-coffee-16-regular.svg');
   --icon-close:      url('/icons/fluent-dismiss-16-regular.svg');
+  --icon-check-flag: url('/icons/checkered-flag.svg');
+  --icon-clap:       url('/icons/noun-clap.svg');
 }
 
 /* ───── After your :root block ───── */
@@ -95,7 +97,9 @@ body[data-theme="light"] {
 .icon-btn.minus,
 .icon-btn.settings,
 .icon-btn.coffee,
-.icon-btn.close { /* Added .close for completeness if an icon is defined */
+.icon-btn.close,
+.icon-btn.clap,
+.icon-check-flag { /* Added .close for completeness if an icon is defined */
   background-image: none; /* Remove any accidental background images */
   background-color: var(--fg); /* This color becomes the icon color through the mask */
   -webkit-mask-repeat: no-repeat;
@@ -121,6 +125,8 @@ body[data-theme="light"] {
 .icon-btn.settings   { -webkit-mask-image: var(--icon-settings);   mask-image: var(--icon-settings); }
 .icon-btn.coffee     { -webkit-mask-image: var(--icon-coffee);     mask-image: var(--icon-coffee); }
 .icon-btn.close      { -webkit-mask-image: var(--icon-close); mask-image: var(--icon-close); }
+.icon-check-flag     { -webkit-mask-image: var(--icon-check-flag); mask-image: var(--icon-check-flag); }
+.icon-btn.clap       { -webkit-mask-image: var(--icon-clap); mask-image: var(--icon-clap); }
 
 
 /* New wrapper for icon buttons that need a circular border */
@@ -574,7 +580,52 @@ body {
     justify-content: center;
 }
 
-/* -- Transitions -- */
+
+/* ----------------------------------------------------------------------------
+                      Completed View Specific Styles
+------------------------------------------------------------------------------ */
+#view-completed .completed-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100% - 40px); /* Adjust for header and footer */
+  flex-grow: 1; /* Allow it to take available space */
+}
+
+#view-completed .completed-text-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#view-completed .completed-text {
+  font-size: 2.2rem; /* Or your desired size, e.g., 2.5rem to match the timer */
+  color: white;
+  margin-bottom: 10px; /* Space between text and icons */
+  margin-top: 30px; /* Initial adequate headroom. Adjust this value for desired spacing. */
+}
+
+#view-completed .clap-icons {
+  display: flex;
+  gap: 2px; /* Space between clap icons */
+}
+
+#view-completed .icon-btn.clap {
+  -webkit-mask-image: var(--icon-clap); /* Ensure these are still here or inherited */
+  mask-image: var(--icon-clap);         /* Ensure these are still here or inherited */
+  background-color: var(--fg);          /* Ensure this is still here or inherited */
+
+  /* Adjust size */
+  -webkit-mask-size: 48px 48px; /* Example: larger size */
+  mask-size: 48px 48px;         /* Example: larger size */
+
+  /* Keep other .icon-btn properties as needed or let them inherit */
+}
+
+/* ----------------------------------------------------------------------------
+                      Transitions Timing & Specific Styles
+------------------------------------------------------------------------------ */
+
 .view {
   transition: opacity 0.3s ease, transform 0.3s ease; /* Original */
 }

@@ -17,6 +17,7 @@ const btnSkipFwd      = document.getElementById('btn-skip-fwd');
 const viewTimer       = document.getElementById('view-timer');
 const viewSettings    = document.getElementById('view-settings');
 const viewAdjust      = document.getElementById('view-adjust');
+const viewCompleted   = document.getElementById('view-completed');
 
 // Buttons for navigation and settings
 const btnSettings       = document.getElementById('btn-settings'); // In Timer view footer
@@ -24,6 +25,14 @@ const btnCloseSettings  = document.getElementById('btn-close-settings'); // In S
 const btnBackSettings     = document.getElementById('btn-back-settings');   // In Settings view header (typo? btnBackAdjust is also used)
 const btnBackAdjust     = document.getElementById('btn-back-adjust');   // In Adjust view header
 const settingItems    = document.querySelectorAll('.setting-item');
+
+// Buttons for view-completed
+const btnResetCompleted       = document.getElementById('btn-reset-completed');
+const btnStartPauseCompleted  = document.getElementById('btn-start-pause-completed');
+const btnSettingsCompleted    = document.getElementById('btn-settings-completed');
+const btnSkipFwdCompleted     = document.getElementById('btn-skip-fwd-completed');
+const completedTextLabel      = document.getElementById('completed-text-label');
+
 
 // Labels for settings values in the list
 const labels          = {
@@ -42,11 +51,12 @@ const increaseBtn     = document.getElementById('increase');
 
 // Tabs in Settings view
 const tabDuration     = document.getElementById('tab-duration');
-const tabNotifications = document.getElementById('tab-preferences'); // Corrected from original typo `tabPreferences`
+const tabNotifications = document.getElementById('tab-preferences');
 
 // specific icons
 const eyeIcon = document.querySelector('.icon-btn.eye');
 const coffeeIcon = document.querySelector('.icon-btn.coffee');
+const finishFlagIcon = document.querySelector('.icon-btn.finish-flag');
 
 let currentAdjustKey = null; // To store which setting is being adjusted
 
@@ -54,9 +64,22 @@ let currentAdjustKey = null; // To store which setting is being adjusted
 //  Initialize UI on load
 // ────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  refreshUI();
+  chrome.storage.local.get(['pomodoroCompleted', 'timerRunning'], prefs => {
+    refreshUI(); // Always update UI elements first
+
+    // Determine initial view based on current state
+    if (prefs.pomodoroCompleted) {
+      // If pomodoro was completed, initiate reset and then show timer view
+      chrome.runtime.sendMessage({ action: 'resetCompleted' }, () => {
+        refreshUI(); // Re-update UI with reset values
+        switchToView('view-timer'); // Show the timer view after reset
+      });
+    } else {
+      // Otherwise, always start on the timer view
+      switchToView('view-timer');
+    }
+  });
   bindUIActions();
-  switchToView('view-timer'); // Ensure timer view is active on load
 });
 
 // Function to switch between views
@@ -97,9 +120,9 @@ function openAdjustView(key) {
   });
 }
 
-// Refresh everything from chrome.storage
+// Refresh everything from chrome.storage (now only updates elements, not views)
 function refreshUI() {
-  try { // Added try/catch for the main UI refresh logic
+  try {
     chrome.storage.local.get(null, prefs => {
       const defaults = { // Define defaults here in case some prefs are not set
         focus: 25,
@@ -108,15 +131,19 @@ function refreshUI() {
         sessionsBeforeLong: 4,
         currentSession: 'focus',
         remainingSec: 25 * 60,
-        sessionCount: 0,
-        timerRunning: false
+        timerRunning: false,
+        pomodoroCompleted: false
       };
       const currentPrefs = { ...defaults, ...prefs };
 
       const {
         focus, shortBreak, longBreak, sessionsBeforeLong,
-        currentSession, remainingSec, sessionCount, timerRunning
+        currentSession, remainingSec, sessionCount, timerRunning,
+        pomodoroCompleted // Keep pomodoroCompleted for other UI logic if needed, but not for view switching in this func
       } = currentPrefs;
+
+      // REMOVED: View switching logic from here. It is now handled explicitly
+      // in DOMContentLoaded and chrome.storage.onChanged listener.
 
       // Update eye/coffee icon based on current session
       if (eyeIcon) {
@@ -129,9 +156,10 @@ function refreshUI() {
         }
       }
 
-      // time display
-      timeDisplay.textContent = formatTime(remainingSec);
-      sessionLabel.textContent = labelCase(currentSession);
+      // time display (only for view-timer)
+      if (timeDisplay) timeDisplay.textContent = formatTime(remainingSec);
+      if (sessionLabel) sessionLabel.textContent = labelCase(currentSession);
+      if (completedTextLabel) completedTextLabel.textContent = "COMPLETED";
 
       // Donut progress calculation (ENHANCED WITH ROUNDED EDGE)
       const totalDurationForCurrentSession = currentPrefs[currentSession] * 60;
@@ -149,24 +177,30 @@ function refreshUI() {
 
       deg = Math.max(0, Math.min(360, deg));
 
-      // Set the CSS variables
-      donutProgress.style.setProperty('--deg', `${deg}deg`);
-      donutProgress.setAttribute('data-deg', `${deg.toFixed(1)}°`);
+      // Set the CSS variables for the timer view's donut
+      if (donutProgress) {
+        donutProgress.style.setProperty('--deg', `${deg}deg`);
+        donutProgress.setAttribute('data-deg', `${deg.toFixed(1)}°`);
 
-      // Control rounded edge visibility - hide when progress is very small
-      const showRoundedEdge = deg > 5; // Only show after 5 degrees of progress
-      donutProgress.style.setProperty('--progress-opacity', showRoundedEdge ? '1' : '0');
+        // Control rounded edge visibility - hide when progress is very small
+        const showRoundedEdge = deg > 5; // Only show after 5 degrees of progress
+        donutProgress.style.setProperty('--progress-opacity', showRoundedEdge ? '1' : '0');
+      }
 
       // status dots
       renderStatusDots(sessionCount, sessionsBeforeLong);
 
-      // button text
-      btnStartPause.textContent = timerRunning ? 'PAUSE' : 'START';
+      // button text for timer view
+      if (btnStartPause) btnStartPause.textContent = timerRunning ? 'PAUSE' : 'START';
 
-      // Disable skip button if current session is 'longBreak'
+      // Disable skip button if current session is 'longBreak' or pomodoro is completed
       if (btnSkipFwd) {
-        btnSkipFwd.disabled = (currentSession === 'longBreak');
+        btnSkipFwd.disabled = (currentSession === 'longBreak' || pomodoroCompleted);
       }
+      // Ensure buttons in completed view are disabled
+      if (btnStartPauseCompleted) btnStartPauseCompleted.disabled = true;
+      if (btnSkipFwdCompleted) btnSkipFwdCompleted.disabled = true;
+
 
       // labels for settings
       if (labels.focus) labels.focus.innerText = `${focus} min`;
@@ -185,28 +219,42 @@ function refreshUI() {
 //  Bind Buttons & UI Actions
 // ────────────────────────────────────────────────────────────
 function bindUIActions() {
-  // Event listener for Start/Stop Timer controls
-  btnStartPause.addEventListener('click', () => {
-    chrome.storage.local.get('timerRunning', prefs => {
-      const action = prefs.timerRunning ? 'pause' : 'start';
-      chrome.runtime.sendMessage({ action }, refreshUI);
+  // Event listener for Start/Stop Timer controls (Timer View)
+  if (btnStartPause) {
+    btnStartPause.addEventListener('click', () => {
+      chrome.storage.local.get('timerRunning', prefs => {
+        const action = prefs.timerRunning ? 'pause' : 'start';
+        chrome.runtime.sendMessage({ action }, refreshUI);
+      });
     });
-  });
+  }
 
-  // Event listener for reset button
-  btnReset.addEventListener('click', () => {
-    chrome.runtime.sendMessage({ action: 'reset' }, () => {
-      // This callback executes AFTER the background script has processed the 'reset' action
-      refreshUI();
+
+  // Event listener for reset button (Timer View)
+  if (btnReset) {
+    btnReset.addEventListener('click', () => {
+      chrome.runtime.sendMessage({ action: 'reset' }, () => {
+        // This callback executes AFTER the background script has processed the 'reset' action
+        refreshUI();
+      });
     });
-  });
+  }
 
-  // Skip Fwd button action
+  // Skip Fwd button action (Timer View)
   if (btnSkipFwd) {
     btnSkipFwd.addEventListener('click', () => {
       // Send a message to the background script to advance the session
       chrome.runtime.sendMessage({ action: 'skipSession' }, () => {
         refreshUI(); // Refresh UI after the session has been skipped
+      });
+    });
+  }
+
+  // Event listener for reset button (Completed View)
+  if (btnResetCompleted) {
+    btnResetCompleted.addEventListener('click', () => {
+      chrome.runtime.sendMessage({ action: 'resetCompleted' }, () => {
+        refreshUI(); // Refresh UI after the reset
       });
     });
   }
@@ -220,12 +268,17 @@ function bindUIActions() {
   }
   // Check for btnBackSettings vs btnBackAdjust: btnBackAdjust is used in the Adjust view header.
   // btnBackSettings seems to be for the Settings view header, going back to timer.
-  if (btnBackSettings) { // Make sure this element exists in HTML
+  if (btnBackSettings) {
     btnBackSettings.addEventListener('click', () => switchToView('view-timer'));
   }
   if (btnBackAdjust) {
     btnBackAdjust.addEventListener('click', () => switchToView('view-settings'));
   }
+  // Navigation from completed view to settings
+  if (btnSettingsCompleted) {
+    btnSettingsCompleted.addEventListener('click', () => switchToView('view-settings'));
+  }
+
 
   // Setting items in the list
   settingItems.forEach(item => {
@@ -236,33 +289,37 @@ function bindUIActions() {
   });
 
   // Adjustment view controls (+ / - / input change)
-  decreaseBtn.addEventListener('click', () => updateAdjustInput(-1));
-  increaseBtn.addEventListener('click', () => updateAdjustInput(1));
+  if (decreaseBtn) decreaseBtn.addEventListener('click', () => updateAdjustInput(-1));
+  if (increaseBtn) increaseBtn.addEventListener('click', () => updateAdjustInput(1));
 
-  adjustInput.addEventListener('change', () => {
-    let value = parseInt(adjustInput.value, 10);
-    const min = parseInt(adjustInput.min, 10) || 1;
-    if (isNaN(value) || value < min) {
-      value = min;
-      adjustInput.value = value;
-    }
-    if (currentAdjustKey) {
-      chrome.runtime.sendMessage({
-        action: 'updateDurations',
-        durations: { [currentAdjustKey]: value }
-      }, () => {
-        refreshUI(); // Refresh main UI after update from background
-        // Also update the specific label in the settings view immediately
-        if (labels[currentAdjustKey]) {
-          labels[currentAdjustKey].innerText = `${value} ${currentAdjustKey === 'sessionsBeforeLong' ? 'Sess.' : 'min'}`;
-        }
-      });
-    }
-  });
+  if (adjustInput) {
+    adjustInput.addEventListener('change', () => {
+      let value = parseInt(adjustInput.value, 10);
+      const min = parseInt(adjustInput.min, 10) || 1;
+      if (isNaN(value) || value < min) {
+        value = min;
+        adjustInput.value = value;
+      }
+      if (currentAdjustKey) {
+        chrome.runtime.sendMessage({
+          action: 'updateDurations',
+          durations: { [currentAdjustKey]: value }
+        }, () => {
+          // This callback no longer calls refreshUI() to prevent jumping back to timer view.
+          // The chrome.storage.onChanged listener will handle overall UI refresh
+          // when data changes, but we want to stay on the settings view for immediate feedback.
+          if (labels[currentAdjustKey]) {
+            labels[currentAdjustKey].innerText = `${value} ${currentAdjustKey === 'sessionsBeforeLong' ? 'Sess.' : 'min'}`;
+          }
+        });
+      }
+    });
+  }
+
 
   // Tab button logic (visual switching)
   // Ensure 'tabNotifications' is indeed the ID for the "tab-preferences" element
-  if (tabDuration && tabNotifications) { // Use tabNotifications here
+  if (tabDuration && tabNotifications) {
     tabDuration.addEventListener('click', () => {
       tabDuration.classList.add('active');
       tabNotifications.classList.remove('active');
@@ -270,7 +327,7 @@ function bindUIActions() {
       document.querySelector('.settings-list').style.display = ''; // Show duration settings
       // Potentially hide PREFERENCES specific settings if they exist in a different list
     });
-    tabNotifications.addEventListener('click', () => { // Use tabNotifications here
+    tabNotifications.addEventListener('click', () => {
       tabNotifications.classList.add('active');
       tabDuration.classList.remove('active');
       // Show relevant settings for PREFERENCES
@@ -314,7 +371,6 @@ function renderStatusDots(count, cycleLen) {
   if (!statusDiv) return;
   statusDiv.innerHTML = '';
   if (typeof count !== 'number' || typeof cycleLen !== 'number') {
-    // console.warn("Invalid count or cycleLen for renderStatusDots:", count, cycleLen);
     return;
   }
 
@@ -331,6 +387,17 @@ function renderStatusDots(count, cycleLen) {
 // Listener for storage changes from background script
 chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace === 'local') {
-    refreshUI(); // Re-render UI on any relevant storage change
+    refreshUI(); // Update all current UI elements
+
+    // NEW: Explicitly handle view switching based on state changes
+    if (changes.pomodoroCompleted && changes.pomodoroCompleted.newValue === true) {
+      switchToView('view-completed');
+    } else if (changes.pomodoroCompleted && changes.pomodoroCompleted.newValue === false && changes.pomodoroCompleted.oldValue === true) {
+      // If pomodoro was completed and now reset, switch to timer view
+      switchToView('view-timer');
+    }
+    // Add more conditions here if other state changes should trigger view switches
+    // For example, if currentSession changes (e.g., focus to shortBreak) and you want to ensure timer view,
+    // but current logic already keeps it there.
   }
 });

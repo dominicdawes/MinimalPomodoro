@@ -13,22 +13,9 @@ const DEFAULTS = {
   currentSession: 'focus',  // 'focus' | 'shortBreak' | 'longBreak'
   sessionCount: 0,          // how many focus sessions completed
   remainingSec: 25 * 60,    // seconds left in current session
-  timerRunning: false
+  timerRunning: false,
+  pomodoroCompleted: false
 };
-
-// // Listen for the extension icon to be clicked (COMMENT OUT IF NOT: injecting HTML for rounding corners into the DOM)
-// chrome.action.onClicked.addListener((tab) => {
-//   // Get the current tab ID
-//   const tabId = tab.id;
-  
-//   // Inject the content script into the current tab
-//   chrome.scripting.executeScript({
-//     target: { tabId: tabId },
-//     files: ['src/content.js'] /* Updated path */
-//   });
-  
-//   console.log(`Content script injected into tab ${tabId}`);
-// });
 
 // On install or upgrade, seed defaults if none exist
 chrome.runtime.onInstalled.addListener(() => {
@@ -46,7 +33,7 @@ chrome.runtime.onInstalled.addListener(() => {
 
 // Listen to messages from popup.js
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  try { // Added try/catch
+  try {
     switch (msg.action) {
       case 'start':
         startTimer();
@@ -57,7 +44,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       case 'reset':
         resetTimer();
         break;
-      case 'skipSession': // New: Handle skip session action
+      case 'skipSession':
         skipToNextSession();
         break;
       case 'updateDurations':
@@ -73,11 +60,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           }
         });
         break;
+      case 'resetCompleted':
+        resetTimer(true);
+        break;
     }
     sendResponse();
   } catch (e) {
     console.error("Error in chrome.runtime.onMessage listener:", e);
-    sendResponse({ error: e.message }); // Send response even on error
+    sendResponse({ error: e.message });
   }
   return true; // Indicates asynchronous response
 });
@@ -87,11 +77,12 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 chrome.alarms.onAlarm.addListener(alarm => {
   if (alarm.name !== ALARM_NAME) return;
 
-  try { // Added try/catch for the main alarm logic
+  try {
     chrome.storage.local.get([
       'timerRunning','remainingSec',
       'focus','shortBreak','longBreak',
-      'currentSession','sessionCount','sessionsBeforeLong'
+      'currentSession','sessionCount','sessionsBeforeLong',
+      'pomodoroCompleted'
     ], prefs => {
       if (!prefs.timerRunning) return;
 
@@ -102,13 +93,13 @@ chrome.alarms.onAlarm.addListener(alarm => {
 
       // 2. ALWAYS update storage and badge with the new remainingSec.
       chrome.storage.local.set({ remainingSec }, () => {
-          updateBadge(remainingSec, currentSession); // Update badge with current remainingSec (can be 0)
+          updateBadge(remainingSec, currentSession);
       });
 
       // 3. Check if session has ended (remainingSec is now 0 or less)
       if (remainingSec <= 0) {
         // session ended
-        chrome.storage.local.set({ timerRunning: false }); // Temporarily set to false, will be re-enabled by startTimer()
+        chrome.storage.local.set({ timerRunning: false });
         clearAlarm();
         playBell();
         notifyEndOfSession(currentSession);
@@ -116,19 +107,28 @@ chrome.alarms.onAlarm.addListener(alarm => {
         // determine next session
         let nextSession = 'focus';
         let nextCount = sessionCount;
+        let pomodoroIsComplete = false;
+
         if (currentSession === 'focus') {
           nextCount++;
           nextSession = (nextCount % sessionsBeforeLong === 0) ? 'longBreak' : 'shortBreak';
+        } else if (currentSession === 'longBreak') {
+          pomodoroIsComplete = true;
+          nextSession = 'focus';
+          nextCount = 0;
         }
-        // reset for next
+
         const nextDurMin = prefs[nextSession];
         chrome.storage.local.set({
           currentSession: nextSession,
           sessionCount: nextCount,
-          remainingSec: nextDurMin * 60 // Set remainingSec for the *new* session
+          remainingSec: nextDurMin * 60,
+          pomodoroCompleted: pomodoroIsComplete
         }, () => {
-            updateBadge(nextDurMin * 60, nextSession); // Update badge for the new session
-            startTimer(); // NEW: Automatically start the next session!
+            updateBadge(nextDurMin * 60, nextSession);
+            if (!pomodoroIsComplete) {
+                startTimer();
+            }
         });
       }
     });
@@ -142,8 +142,8 @@ chrome.alarms.onAlarm.addListener(alarm => {
 //  Timer Control Helpers
 // ────────────────────────────────────────────────────────────
 function startTimer() {
-  chrome.storage.local.get(['timerRunning','remainingSec','currentSession','focus','shortBreak','longBreak'], prefs => {
-    if (prefs.timerRunning) return;
+  chrome.storage.local.get(['timerRunning','remainingSec','currentSession','focus','shortBreak','longBreak', 'pomodoroCompleted'], prefs => {
+    if (prefs.timerRunning || prefs.pomodoroCompleted) return;
     // if we just reset or never started, ensure remainingSec is set
     if (prefs.remainingSec <= 0) {
       const durMin = prefs[prefs.currentSession];
@@ -160,14 +160,15 @@ function pauseTimer() {
   clearAlarm();
 }
 
-function resetTimer() {
+function resetTimer(fromCompletedView = false) {
   // Always reset to the default focus session values
   chrome.storage.local.get(['focus'], prefs => {
     chrome.storage.local.set({
       timerRunning: false,
       sessionCount: 0,
       currentSession: 'focus',
-      remainingSec: prefs.focus * 60
+      remainingSec: prefs.focus * 60,
+      pomodoroCompleted: false
     }, () => {
       clearAlarm();
       chrome.action.setBadgeText({ text: '' });
@@ -176,11 +177,10 @@ function resetTimer() {
   });
 }
 
-// Function to skip to the next session
 function skipToNextSession() {
   chrome.storage.local.get([
     'currentSession', 'sessionCount', 'sessionsBeforeLong',
-    'focus', 'shortBreak', 'longBreak', 'timerRunning'
+    'focus', 'shortBreak', 'longBreak', 'timerRunning', 'pomodoroCompleted'
   ], prefs => {
     let { currentSession, sessionCount, sessionsBeforeLong, timerRunning } = prefs;
 
@@ -192,6 +192,7 @@ function skipToNextSession() {
 
     let nextSession = 'focus';
     let nextCount = sessionCount;
+    let pomodoroIsComplete = false;
 
     if (currentSession === 'focus') {
       nextCount++;
@@ -199,12 +200,9 @@ function skipToNextSession() {
     } else if (currentSession === 'shortBreak') {
       nextSession = 'focus';
     } else if (currentSession === 'longBreak') {
-      // If currently in long break, and skipping, it should reset to focus
-      // and the button should be disabled as per requirement.
-      // This case should ideally not be reachable if the button is disabled.
-      // However, as a safeguard, we can reset to focus.
+      pomodoroIsComplete = true;
       nextSession = 'focus';
-      nextCount = 0; // Reset session count after a long break
+      nextCount = 0;
     }
 
     const nextDurMin = prefs[nextSession];
@@ -212,11 +210,12 @@ function skipToNextSession() {
       currentSession: nextSession,
       sessionCount: nextCount,
       remainingSec: nextDurMin * 60,
-      timerRunning: false // Ensure timer is paused after skipping
+      timerRunning: false, // Ensure timer is paused after skipping
+      pomodoroCompleted: pomodoroIsComplete
     }, () => {
       updateBadge(nextDurMin * 60, nextSession);
-      // If the timer was running, start the new session automatically
-      if (timerRunning) {
+      // If the timer was running, start the new session automatically, unless cycle is complete
+      if (timerRunning && !pomodoroIsComplete) {
         startTimer();
       }
     });
@@ -259,7 +258,7 @@ async function playBell() {
   });
 }
 
-// NEW: Function to manage the offscreen document
+// Function to manage the offscreen document
 let offscreenCreating; // A promise to avoid multiple creation attempts
 
 async function setupOffscreenDocument() {

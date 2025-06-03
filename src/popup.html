@@ -9,6 +9,7 @@
 <body>
   <div id="app">
 
+    <!-- VIEW: TIMER ANIMATION section -->
     <section id="view-timer" class="view active">
       <header class="top-bar"></header>
 
@@ -41,6 +42,39 @@
       <button id="btn-skip-fwd" class="skip-fwd-btn" disabled>Skip Fwd.</button>
     </section>
 
+    <!-- VIEW: SESSION_COMPLETED section -->
+    <section id="view-completed" class="view">
+      <header class="top-bar"></header>
+
+      <div class="completed-content">
+        <div class="completed-text-container">
+          <div class="completed-text">COMPLETE</div>
+          <div class="clap-icons">
+            <div class="icon-btn clap"></div>
+            <div class="icon-btn clap"></div>
+            <div class="icon-btn clap"></div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="bottom-bar">
+        <span class="icon-border-wrapper">
+          <button id="btn-reset-completed" class="icon-btn reset">
+            <span class="icon"></span>
+          </button>
+        </span>
+        <button id="btn-start-pause-completed" class="primary-btn" disabled>START</button>
+        <span class="icon-border-wrapper">
+          <button id="btn-settings-completed" class="icon-btn settings">
+            <span class="icon"></span>
+          </button>
+        </span>
+      </footer>
+      <button id="btn-skip-fwd-completed" class="skip-fwd-btn" disabled>Skip Fwd.</button>
+    </section>
+
+    
+    <!-- VIEW: SETTINGS section -->
     <section id="view-settings" class="view">
       <header class="top-bar">
         <span class="icon-border-wrapper">
